@@ -5,6 +5,12 @@ interface TreeNodeProps {
   depth: number;
   onToggle: (fullPath: string) => void;
   onNavigate: (fullPath: string) => void;
+  onDragStart?: (node: TreeNodeType, e: DragEvent) => void;
+  onDragOver?: (targetFullPath: string, e: DragEvent) => void;
+  onDragLeave?: () => void;
+  onDragEnd?: () => void;
+  onDrop?: (targetFullPath: string, e: DragEvent) => void;
+  dropTarget?: string | null;
 }
 
 const INDENT_PX = 16;
@@ -14,9 +20,16 @@ export function TreeNodeComponent({
   depth,
   onToggle,
   onNavigate,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDragEnd,
+  onDrop,
+  dropTarget,
 }: TreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isFolder = node.type === 'folder' || node.type === 'both';
+  const isDropTarget = dropTarget === node.fullPath;
 
   const handleIconClick = (e: Event) => {
     e.stopPropagation();
@@ -30,7 +43,6 @@ export function TreeNodeComponent({
     if (node.type === 'page' || node.type === 'both') {
       onNavigate(node.fullPath);
     } else {
-      // folder-only: clicking anywhere toggles
       onToggle(node.fullPath);
     }
   };
@@ -41,7 +53,26 @@ export function TreeNodeComponent({
     } else if (node.type === 'page') {
       onNavigate(node.fullPath);
     }
-    // 'both': handled by icon/label click handlers separately
+  };
+
+  const handleDragStart = (e: DragEvent) => {
+    onDragStart?.(node, e);
+  };
+
+  const handleDragOver = (e: DragEvent) => {
+    if (isFolder) {
+      onDragOver?.(node.fullPath, e);
+    }
+  };
+
+  const handleDragLeave = () => {
+    onDragLeave?.();
+  };
+
+  const handleDrop = (e: DragEvent) => {
+    if (isFolder) {
+      onDrop?.(node.fullPath, e);
+    }
   };
 
   const renderIcon = () => {
@@ -60,12 +91,20 @@ export function TreeNodeComponent({
       ? 'tree-node-label clickable'
       : 'tree-node-label';
 
+  const rowClass = `tree-node${isDropTarget ? ' tree-node-drop-target' : ''}`;
+
   return (
     <div>
       <div
-        class="tree-node"
+        class={rowClass}
         style={{ paddingLeft: `${depth * INDENT_PX}px` }}
         onClick={handleRowClick}
+        draggable
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDragEnd={onDragEnd}
+        onDrop={handleDrop}
         data-testid={`tree-node-${node.fullPath}`}
       >
         {renderIcon()}
@@ -82,6 +121,12 @@ export function TreeNodeComponent({
               depth={depth + 1}
               onToggle={onToggle}
               onNavigate={onNavigate}
+              onDragStart={onDragStart}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDragEnd={onDragEnd}
+              onDrop={onDrop}
+              dropTarget={dropTarget}
             />
           ))}
         </div>

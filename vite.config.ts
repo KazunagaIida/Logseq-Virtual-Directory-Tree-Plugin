@@ -2,7 +2,13 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 
 export default defineConfig({
-  plugins: [preact()],
+  plugins: [
+    preact({
+      babel: {
+        plugins: [],
+      },
+    }),
+  ],
   build: {
     outDir: 'dist',
     assetsDir: '.',
@@ -15,5 +21,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/__tests__/setup.ts'],
     passWithNoTests: true,
+    server: {
+      deps: {
+        inline: ['zimmerframe'],
+      },
+    },
   },
 });
