@@ -1,0 +1,29 @@
+{
+  "name": "logseq-virtual-directory-tree",
+  "version": "0.1.0",
+  "description": "Virtual directory tree view using Logseq namespaces",
+  "main": "dist/index.html",
+  "logseq": {
+    "id": "virtual-directory-tree",
+    "icon": "./logo.svg"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@logseq/libs": "^0.0.17",
+    "preact": "^10.29.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/preact": "^3.2.4",
+    "jsdom": "^29.0.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.2",
+    "vitest": "^4.1.1"
+  }
+}
