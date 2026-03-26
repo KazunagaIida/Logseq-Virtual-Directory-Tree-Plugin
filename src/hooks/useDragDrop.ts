@@ -77,6 +77,15 @@ export function useDragDrop(
         }
         dragSourcesRef.current = sources;
         setState((prev) => ({ ...prev, sourceCount: sources.length }));
+
+        // Custom drag ghost showing item count
+        const ghost = document.createElement('div');
+        ghost.textContent = `${sources.length} items`;
+        ghost.style.cssText =
+          'padding: 4px 12px; background: #3898ff; color: #fff; border-radius: 4px; font-size: 13px; font-family: sans-serif; position: absolute; top: -1000px; white-space: nowrap;';
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, 0, 0);
+        setTimeout(() => document.body.removeChild(ghost), 0);
       } else {
         // Single drag (unselected node or single selection)
         dragSourcesRef.current = [node];

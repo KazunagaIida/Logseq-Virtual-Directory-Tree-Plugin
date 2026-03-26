@@ -48,15 +48,25 @@ export function TreeNodeComponent({
     }
   }, [isActive]);
 
-  const handleIconClick = (e: Event) => {
+  const handleIconClick = (e: MouseEvent) => {
     e.stopPropagation();
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      onSelect?.(node.fullPath, e.ctrlKey || e.metaKey, e.shiftKey);
+      return;
+    }
+    onSelect?.(node.fullPath, false, false);
     if (isFolder) {
       onToggle(node.fullPath);
     }
   };
 
-  const handleLabelClick = (e: Event) => {
+  const handleLabelClick = (e: MouseEvent) => {
     e.stopPropagation();
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      onSelect?.(node.fullPath, e.ctrlKey || e.metaKey, e.shiftKey);
+      return;
+    }
+    onSelect?.(node.fullPath, false, false);
     if (node.type === 'page' || node.type === 'both') {
       onNavigate(node.fullPath);
     } else {
@@ -66,10 +76,10 @@ export function TreeNodeComponent({
 
   const handleRowClick = (e: MouseEvent) => {
     if (e.ctrlKey || e.metaKey || e.shiftKey) {
-      // Multi-select mode
       onSelect?.(node.fullPath, e.ctrlKey || e.metaKey, e.shiftKey);
       return;
     }
+    onSelect?.(node.fullPath, false, false);
     if (node.type === 'folder') {
       onToggle(node.fullPath);
     } else if (node.type === 'page') {

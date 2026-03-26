@@ -27,6 +27,7 @@ function makeDragEvent(overrides?: Partial<DragEvent>): DragEvent {
       effectAllowed: 'uninitialized',
       dropEffect: 'none',
       setData: vi.fn(),
+      setDragImage: vi.fn(),
     },
     ...overrides,
   } as unknown as DragEvent;
