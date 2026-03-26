@@ -60,9 +60,18 @@ function main() {
     if (visible) {
       applyTheme(detectTheme());
       adjustMainContent(280);
-      // Offset panel below Logseq's toolbar
       const toolbarH = getToolbarHeight();
       document.documentElement.style.setProperty('--vdt-toolbar-height', `${toolbarH}px`);
+      // Shrink iframe to panel area only so clicks pass through to Logseq
+      logseq.setMainUIInlineStyle({
+        position: 'fixed',
+        top: `${toolbarH}px`,
+        right: '0',
+        bottom: '0',
+        left: 'auto',
+        width: '280px',
+        zIndex: '999',
+      });
     } else {
       resetMainContent();
     }
