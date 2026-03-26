@@ -24,12 +24,15 @@
   --vdt-shadow: rgba(0, 0, 0, 0.5);
 }
 
-/* ===== Panel layout ===== */
-.tree-overlay {
-  width: 100%;
+/* ===== Height chain for iframe ===== */
+html, body, #app {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
+/* ===== Panel layout ===== */
 .tree-panel {
   width: 100%;
   height: 100%;
@@ -78,6 +81,7 @@
 /* ===== Tree container ===== */
 .tree-container {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
   padding: 8px;

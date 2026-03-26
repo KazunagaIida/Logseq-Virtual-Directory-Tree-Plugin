@@ -188,8 +188,7 @@ export function App() {
   }, [menu.node, closeMenu]);
 
   return (
-    <div class="tree-overlay">
-      <div class="tree-panel">
+    <div class="tree-panel">
         <TreeView
           tree={tree}
           activeNode={activeNode}
@@ -269,7 +268,6 @@ export function App() {
             onClose={closeResultDialog}
           />
         )}
-      </div>
     </div>
   );
 }
