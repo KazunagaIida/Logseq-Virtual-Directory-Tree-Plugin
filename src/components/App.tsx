@@ -1,5 +1,5 @@
 import '../styles/index.css';
-import { useState, useCallback } from 'preact/hooks';
+import { useState, useCallback, useEffect } from 'preact/hooks';
 import type { TreeNode } from '../types';
 import { useTree } from '../hooks/useTree';
 import { useSelection } from '../hooks/useSelection';
@@ -195,6 +195,24 @@ export function App() {
     }
     closeMenu();
   }, [menu.node, closeMenu]);
+
+  // Escape key closes any open dialog
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showCreateDialog) {
+        handleCreateCancel();
+      } else if (deleteConfirm) {
+        handleDeleteCancel();
+      } else if (state.confirmDialog.visible) {
+        cancelMove();
+      } else if (state.resultDialog.visible) {
+        closeResultDialog();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showCreateDialog, deleteConfirm, state.confirmDialog.visible, state.resultDialog.visible, handleCreateCancel, handleDeleteCancel, cancelMove, closeResultDialog]);
 
   return (
     <div class="tree-panel">
