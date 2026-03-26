@@ -32,19 +32,21 @@
   right: 0;
   bottom: 0;
   z-index: 999;
+  pointer-events: none;
 }
 
 .tree-panel {
   position: absolute;
-  top: 0;
+  top: var(--vdt-toolbar-height, 0px);
   right: 0;
   width: 280px;
-  height: 100%;
+  height: calc(100% - var(--vdt-toolbar-height, 0px));
   box-shadow: -2px 0 8px var(--vdt-shadow);
   background: var(--vdt-bg);
   border-left: 1px solid var(--vdt-border);
   display: flex;
   flex-direction: column;
+  pointer-events: auto;
 }
 
 /* ===== Header (sticky) ===== */

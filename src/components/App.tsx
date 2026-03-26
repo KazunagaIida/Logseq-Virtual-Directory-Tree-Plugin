@@ -188,8 +188,8 @@ export function App() {
   }, [menu.node, closeMenu]);
 
   return (
-    <div class="tree-overlay" onClick={handleClose}>
-      <div class="tree-panel" onClick={(e: Event) => e.stopPropagation()}>
+    <div class="tree-overlay">
+      <div class="tree-panel">
         <TreeView
           tree={tree}
           activeNode={activeNode}
