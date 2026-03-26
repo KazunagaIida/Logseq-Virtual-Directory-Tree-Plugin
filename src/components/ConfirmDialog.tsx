@@ -1,6 +1,22 @@
 import type { RenameEntry, RenameResult } from '../utils/rename';
 import type { TreeNode } from '../types';
 
+// Group rename entries by destination folder
+function groupByDestination(entries: RenameEntry[]): Map<string, { leaf: string; from: string }[]> {
+  const groups = new Map<string, { leaf: string; from: string }[]>();
+  for (const entry of entries) {
+    const newParts = entry.newName.split('/');
+    const destFolder = newParts.length > 1 ? newParts.slice(0, -1).join('/') + '/' : '/ (root)';
+    const leaf = newParts[newParts.length - 1];
+    const oldParts = entry.oldName.split('/');
+    const fromFolder = oldParts.length > 1 ? oldParts.slice(0, -1).join('/') + '/' : '/ (root)';
+
+    if (!groups.has(destFolder)) groups.set(destFolder, []);
+    groups.get(destFolder)!.push({ leaf, from: fromFolder });
+  }
+  return groups;
+}
+
 interface ConfirmDialogProps {
   sourceNode: TreeNode;
   sourceNodes?: TreeNode[];
@@ -29,6 +45,11 @@ export function ConfirmDialog({
       ? 'Move folder?'
       : 'Move page?';
 
+  const grouped = groupByDestination(renameList);
+  const MAX_ITEMS = 8;
+  let shown = 0;
+  const remaining = renameList.length - MAX_ITEMS;
+
   return (
     <div class="dialog-overlay" data-testid="confirm-dialog">
       <div class="dialog-box">
@@ -53,14 +74,26 @@ export function ConfirmDialog({
           </div>
           {renameList.length > 0 && (
             <div class="dialog-rename-list">
-              {renameList.slice(0, 5).map((entry) => (
-                <div key={entry.oldName} class="dialog-rename-item">
-                  {entry.oldName} → {entry.newName}
-                </div>
-              ))}
-              {renameList.length > 5 && (
+              {Array.from(grouped.entries()).map(([dest, items]) => {
+                if (shown >= MAX_ITEMS) return null;
+                return (
+                  <div key={dest} class="dialog-rename-group">
+                    <div class="dialog-rename-dest">{dest}</div>
+                    {items.map((item) => {
+                      if (shown >= MAX_ITEMS) return null;
+                      shown++;
+                      return (
+                        <div key={item.leaf + item.from} class="dialog-rename-item">
+                          {item.leaf} <span class="dialog-rename-from">from {item.from}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              {remaining > 0 && (
                 <div class="dialog-rename-more">
-                  ... ({renameList.length - 5} more)
+                  ... ({remaining} more)
                 </div>
               )}
             </div>

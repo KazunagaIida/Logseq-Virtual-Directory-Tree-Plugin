@@ -245,9 +245,29 @@
   overflow-y: auto;
 }
 
-.dialog-rename-item {
+.dialog-rename-group {
+  margin-bottom: 6px;
+}
+
+.dialog-rename-group:last-child {
+  margin-bottom: 0;
+}
+
+.dialog-rename-dest {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vdt-link);
   padding: 2px 0;
+}
+
+.dialog-rename-item {
+  padding: 1px 0 1px 12px;
   word-break: break-all;
+}
+
+.dialog-rename-from {
+  color: var(--vdt-text-secondary);
+  font-size: 11px;
 }
 
 .dialog-rename-more {
