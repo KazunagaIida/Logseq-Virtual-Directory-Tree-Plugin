@@ -7,6 +7,7 @@ const mockLogseq = {
     getAllPages: vi.fn().mockResolvedValue([]),
     renamePage: vi.fn().mockResolvedValue(undefined),
     getPage: vi.fn().mockResolvedValue(null),
+    getCurrentPage: vi.fn().mockResolvedValue(null),
   },
   App: {
     pushState: vi.fn(),

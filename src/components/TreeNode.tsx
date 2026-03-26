@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'preact/hooks';
 import type { TreeNode as TreeNodeType } from '../types';
 
 interface TreeNodeProps {
   node: TreeNodeType;
   depth: number;
+  activeNode?: string | null;
   onToggle: (fullPath: string) => void;
   onNavigate: (fullPath: string) => void;
   onDragStart?: (node: TreeNodeType, e: DragEvent) => void;
@@ -18,6 +20,7 @@ const INDENT_PX = 16;
 export function TreeNodeComponent({
   node,
   depth,
+  activeNode,
   onToggle,
   onNavigate,
   onDragStart,
@@ -27,9 +30,17 @@ export function TreeNodeComponent({
   onDrop,
   dropTarget,
 }: TreeNodeProps) {
+  const rowRef = useRef<HTMLDivElement>(null);
   const hasChildren = node.children.length > 0;
   const isFolder = node.type === 'folder' || node.type === 'both';
   const isDropTarget = dropTarget === node.fullPath;
+  const isActive = activeNode?.toLowerCase() === node.fullPath.toLowerCase();
+
+  useEffect(() => {
+    if (isActive && rowRef.current) {
+      rowRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [isActive]);
 
   const handleIconClick = (e: Event) => {
     e.stopPropagation();
@@ -92,11 +103,16 @@ export function TreeNodeComponent({
       ? 'tree-node-label clickable'
       : 'tree-node-label';
 
-  const rowClass = `tree-node${isDropTarget ? ' tree-node-drop-target' : ''}`;
+  const rowClass = [
+    'tree-node',
+    isDropTarget && 'tree-node-drop-target',
+    isActive && 'tree-node-active',
+  ].filter(Boolean).join(' ');
 
   return (
     <div>
       <div
+        ref={rowRef}
         class={rowClass}
         style={{ paddingLeft: `${depth * INDENT_PX}px` }}
         onClick={handleRowClick}
@@ -120,6 +136,7 @@ export function TreeNodeComponent({
               key={child.fullPath}
               node={child}
               depth={depth + 1}
+              activeNode={activeNode}
               onToggle={onToggle}
               onNavigate={onNavigate}
               onDragStart={onDragStart}

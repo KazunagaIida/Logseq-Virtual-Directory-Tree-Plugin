@@ -41,9 +41,55 @@ function toggleNodeExpanded(
   });
 }
 
+// Expand all ancestor folders of a given fullPath
+function expandAncestors(
+  nodes: TreeNode[],
+  fullPath: string,
+  expandedSet: Set<string>
+): TreeNode[] {
+  const parts = fullPath.split('/');
+  // Build ancestor paths: for "a/b/c" -> ["a", "a/b"]
+  const ancestorPaths = parts.slice(0, -1).map((_, i) =>
+    parts.slice(0, i + 1).join('/')
+  );
+
+  function expand(nodes: TreeNode[]): TreeNode[] {
+    return nodes.map((node) => {
+      const shouldExpand = ancestorPaths.some(
+        (p) => p.toLowerCase() === node.fullPath.toLowerCase()
+      );
+      if (shouldExpand) {
+        expandedSet.add(node.fullPath.toLowerCase());
+        return {
+          ...node,
+          isExpanded: true,
+          children: expand(node.children),
+        };
+      }
+      if (node.children.length > 0) {
+        return { ...node, children: expand(node.children) };
+      }
+      return node;
+    });
+  }
+
+  return expand(nodes);
+}
+
+// Check if a node exists in the tree
+function nodeExists(nodes: TreeNode[], fullPath: string): boolean {
+  for (const node of nodes) {
+    if (node.fullPath.toLowerCase() === fullPath.toLowerCase()) return true;
+    if (nodeExists(node.children, fullPath)) return true;
+  }
+  return false;
+}
+
 export function useTree() {
   const [tree, setTree] = useState<TreeNode[]>([]);
+  const [activeNode, setActiveNode] = useState<string | null>(null);
   const expandedRef = useRef<Set<string>>(new Set());
+  const activeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadTree = useCallback(async () => {
     try {
@@ -110,5 +156,32 @@ export function useTree() {
     logseq.App.pushState('page', { name: fullPath });
   }, []);
 
-  return { tree, toggle, navigate, reload: loadTree };
+  const revealPage = useCallback((fullPath: string) => {
+    let found = false;
+
+    setTree((prev) => {
+      if (!nodeExists(prev, fullPath)) return prev;
+
+      found = true;
+      const updated = expandAncestors(prev, fullPath, expandedRef.current);
+
+      // Persist expanded state
+      const paths = collectExpandedPaths(updated);
+      logseq.updateSettings({ expandedFolders: paths });
+
+      return updated;
+    });
+
+    if (!found) return;
+
+    // Set active node with auto-clear
+    setActiveNode(fullPath);
+    if (activeTimerRef.current) clearTimeout(activeTimerRef.current);
+    activeTimerRef.current = setTimeout(() => {
+      setActiveNode(null);
+      activeTimerRef.current = null;
+    }, 2000);
+  }, []);
+
+  return { tree, activeNode, toggle, navigate, reload: loadTree, revealPage };
 }
