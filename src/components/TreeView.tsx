@@ -13,6 +13,10 @@ interface TreeViewProps {
   onCollapseAll?: () => void;
   onSelect?: (fullPath: string, ctrlKey: boolean, shiftKey: boolean) => void;
   isNodeSelected?: (fullPath: string) => boolean;
+  renamingPath?: string | null;
+  onContextMenu?: (node: TreeNode, x: number, y: number) => void;
+  onRenameConfirm?: (node: TreeNode, newLeafName: string) => void;
+  onRenameCancel?: () => void;
   onDragStart?: (node: TreeNode, e: DragEvent) => void;
   onDragOver?: (targetFullPath: string, e: DragEvent) => void;
   onDragLeave?: () => void;
@@ -38,6 +42,10 @@ export function TreeView({
   onCollapseAll,
   onSelect,
   isNodeSelected,
+  renamingPath,
+  onContextMenu,
+  onRenameConfirm,
+  onRenameCancel,
   onDragStart,
   onDragOver,
   onDragLeave,
@@ -103,9 +111,13 @@ export function TreeView({
               depth={0}
               activeNode={activeNode}
               isSelected={isNodeSelected?.(node.fullPath)}
+              renamingPath={renamingPath}
               onToggle={onToggle}
               onNavigate={onNavigate}
               onSelect={onSelect}
+              onContextMenu={onContextMenu}
+              onRenameConfirm={onRenameConfirm}
+              onRenameCancel={onRenameCancel}
               onDragStart={onDragStart}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}

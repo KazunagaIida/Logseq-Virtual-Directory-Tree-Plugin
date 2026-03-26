@@ -1,14 +1,19 @@
 import { useEffect, useRef } from 'preact/hooks';
 import type { TreeNode as TreeNodeType } from '../types';
+import { InlineRenameInput } from './InlineRenameInput';
 
 interface TreeNodeProps {
   node: TreeNodeType;
   depth: number;
   activeNode?: string | null;
   isSelected?: boolean;
+  renamingPath?: string | null;
   onToggle: (fullPath: string) => void;
   onNavigate: (fullPath: string) => void;
   onSelect?: (fullPath: string, ctrlKey: boolean, shiftKey: boolean) => void;
+  onContextMenu?: (node: TreeNodeType, x: number, y: number) => void;
+  onRenameConfirm?: (node: TreeNodeType, newLeafName: string) => void;
+  onRenameCancel?: () => void;
   onDragStart?: (node: TreeNodeType, e: DragEvent) => void;
   onDragOver?: (targetFullPath: string, e: DragEvent) => void;
   onDragLeave?: () => void;
@@ -25,9 +30,13 @@ export function TreeNodeComponent({
   depth,
   activeNode,
   isSelected,
+  renamingPath,
   onToggle,
   onNavigate,
   onSelect,
+  onContextMenu,
+  onRenameConfirm,
+  onRenameCancel,
   onDragStart,
   onDragOver,
   onDragLeave,
@@ -87,6 +96,14 @@ export function TreeNodeComponent({
     }
   };
 
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onContextMenu?.(node, e.clientX, e.clientY);
+  };
+
+  const isRenaming = renamingPath === node.fullPath;
+
   const handleDragStart = (e: DragEvent) => {
     onDragStart?.(node, e);
   };
@@ -138,7 +155,8 @@ export function TreeNodeComponent({
         class={rowClass}
         style={{ paddingLeft: `${depth * INDENT_PX}px` }}
         onClick={handleRowClick}
-        draggable
+        onContextMenu={handleContextMenu}
+        draggable={!isRenaming}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -147,9 +165,17 @@ export function TreeNodeComponent({
         data-testid={`tree-node-${node.fullPath}`}
       >
         {renderIcon()}
-        <span class={labelClass} onClick={handleLabelClick} data-testid="node-label">
-          {node.displayName}
-        </span>
+        {isRenaming ? (
+          <InlineRenameInput
+            currentName={node.displayName}
+            onConfirm={(newName) => onRenameConfirm?.(node, newName)}
+            onCancel={() => onRenameCancel?.()}
+          />
+        ) : (
+          <span class={labelClass} onClick={handleLabelClick} data-testid="node-label">
+            {node.displayName}
+          </span>
+        )}
       </div>
       {isFolder && node.isExpanded && (
         <div class="tree-node-children">
@@ -160,9 +186,13 @@ export function TreeNodeComponent({
               depth={depth + 1}
               activeNode={activeNode}
               isSelected={isNodeSelected?.(child.fullPath)}
+              renamingPath={renamingPath}
               onToggle={onToggle}
               onNavigate={onNavigate}
               onSelect={onSelect}
+              onContextMenu={onContextMenu}
+              onRenameConfirm={onRenameConfirm}
+              onRenameCancel={onRenameCancel}
               onDragStart={onDragStart}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
