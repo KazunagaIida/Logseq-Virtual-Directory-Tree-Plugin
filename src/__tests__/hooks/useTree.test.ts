@@ -115,3 +115,64 @@ describe('useTree - revealPage', () => {
     expect(result.current.activeNode).toBe('memo');
   });
 });
+
+describe('useTree - expandAll / collapseAll', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
+      testPages
+    );
+    logseq.settings = {};
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('expandAll expands all folder nodes', async () => {
+    const { result } = renderHook(() => useTree());
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    // All should start collapsed
+    const devBefore = result.current.tree.find((n) => n.name === 'dev');
+    expect(devBefore?.isExpanded).toBe(false);
+
+    act(() => {
+      result.current.expandAll();
+    });
+
+    const dev = result.current.tree.find((n) => n.name === 'dev');
+    expect(dev?.isExpanded).toBe(true);
+    const react = dev?.children.find((n) => n.name === 'react');
+    expect(react?.isExpanded).toBe(true);
+    const cooking = result.current.tree.find((n) => n.name === 'cooking');
+    expect(cooking?.isExpanded).toBe(true);
+  });
+
+  it('collapseAll collapses all folder nodes', async () => {
+    const { result } = renderHook(() => useTree());
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    // First expand all
+    act(() => {
+      result.current.expandAll();
+    });
+
+    // Then collapse all
+    act(() => {
+      result.current.collapseAll();
+    });
+
+    const dev = result.current.tree.find((n) => n.name === 'dev');
+    expect(dev?.isExpanded).toBe(false);
+    const cooking = result.current.tree.find((n) => n.name === 'cooking');
+    expect(cooking?.isExpanded).toBe(false);
+  });
+});

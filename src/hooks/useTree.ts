@@ -183,5 +183,39 @@ export function useTree() {
     }, 2000);
   }, []);
 
-  return { tree, activeNode, toggle, navigate, reload: loadTree, revealPage };
+  const expandAll = useCallback(() => {
+    setTree((prev) => {
+      function setAll(nodes: TreeNode[]): TreeNode[] {
+        return nodes.map((node) => {
+          if (node.children.length > 0) {
+            expandedRef.current.add(node.fullPath.toLowerCase());
+            return { ...node, isExpanded: true, children: setAll(node.children) };
+          }
+          return node;
+        });
+      }
+      const updated = setAll(prev);
+      logseq.updateSettings({ expandedFolders: collectExpandedPaths(updated) });
+      return updated;
+    });
+  }, []);
+
+  const collapseAll = useCallback(() => {
+    setTree((prev) => {
+      function setAll(nodes: TreeNode[]): TreeNode[] {
+        return nodes.map((node) => {
+          if (node.children.length > 0) {
+            return { ...node, isExpanded: false, children: setAll(node.children) };
+          }
+          return node;
+        });
+      }
+      expandedRef.current.clear();
+      const updated = setAll(prev);
+      logseq.updateSettings({ expandedFolders: [] });
+      return updated;
+    });
+  }, []);
+
+  return { tree, activeNode, toggle, navigate, reload: loadTree, revealPage, expandAll, collapseAll };
 }
