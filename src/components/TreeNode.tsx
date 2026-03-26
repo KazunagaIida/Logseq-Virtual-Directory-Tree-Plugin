@@ -5,14 +5,17 @@ interface TreeNodeProps {
   node: TreeNodeType;
   depth: number;
   activeNode?: string | null;
+  isSelected?: boolean;
   onToggle: (fullPath: string) => void;
   onNavigate: (fullPath: string) => void;
+  onSelect?: (fullPath: string, ctrlKey: boolean, shiftKey: boolean) => void;
   onDragStart?: (node: TreeNodeType, e: DragEvent) => void;
   onDragOver?: (targetFullPath: string, e: DragEvent) => void;
   onDragLeave?: () => void;
   onDragEnd?: () => void;
   onDrop?: (targetFullPath: string, e: DragEvent) => void;
   dropTarget?: string | null;
+  isNodeSelected?: (fullPath: string) => boolean;
 }
 
 const INDENT_PX = 16;
@@ -21,14 +24,17 @@ export function TreeNodeComponent({
   node,
   depth,
   activeNode,
+  isSelected,
   onToggle,
   onNavigate,
+  onSelect,
   onDragStart,
   onDragOver,
   onDragLeave,
   onDragEnd,
   onDrop,
   dropTarget,
+  isNodeSelected,
 }: TreeNodeProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const hasChildren = node.children.length > 0;
@@ -58,7 +64,12 @@ export function TreeNodeComponent({
     }
   };
 
-  const handleRowClick = () => {
+  const handleRowClick = (e: MouseEvent) => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      // Multi-select mode
+      onSelect?.(node.fullPath, e.ctrlKey || e.metaKey, e.shiftKey);
+      return;
+    }
     if (node.type === 'folder') {
       onToggle(node.fullPath);
     } else if (node.type === 'page') {
@@ -107,6 +118,7 @@ export function TreeNodeComponent({
     'tree-node',
     isDropTarget && 'tree-node-drop-target',
     isActive && 'tree-node-active',
+    isSelected && 'tree-node-selected',
   ].filter(Boolean).join(' ');
 
   return (
@@ -137,14 +149,17 @@ export function TreeNodeComponent({
               node={child}
               depth={depth + 1}
               activeNode={activeNode}
+              isSelected={isNodeSelected?.(child.fullPath)}
               onToggle={onToggle}
               onNavigate={onNavigate}
+              onSelect={onSelect}
               onDragStart={onDragStart}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDragEnd={onDragEnd}
               onDrop={onDrop}
               dropTarget={dropTarget}
+              isNodeSelected={isNodeSelected}
             />
           ))}
         </div>

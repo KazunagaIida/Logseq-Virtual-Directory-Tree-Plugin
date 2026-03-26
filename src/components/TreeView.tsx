@@ -8,6 +8,8 @@ interface TreeViewProps {
   onNavigate: (fullPath: string) => void;
   onReveal?: () => void;
   onClose?: () => void;
+  onSelect?: (fullPath: string, ctrlKey: boolean, shiftKey: boolean) => void;
+  isNodeSelected?: (fullPath: string) => boolean;
   onDragStart?: (node: TreeNode, e: DragEvent) => void;
   onDragOver?: (targetFullPath: string, e: DragEvent) => void;
   onDragLeave?: () => void;
@@ -25,6 +27,8 @@ export function TreeView({
   onNavigate,
   onReveal,
   onClose,
+  onSelect,
+  isNodeSelected,
   onDragStart,
   onDragOver,
   onDragLeave,
@@ -79,14 +83,17 @@ export function TreeView({
               node={node}
               depth={0}
               activeNode={activeNode}
+              isSelected={isNodeSelected?.(node.fullPath)}
               onToggle={onToggle}
               onNavigate={onNavigate}
+              onSelect={onSelect}
               onDragStart={onDragStart}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDragEnd={onDragEnd}
               onDrop={onDrop}
               dropTarget={dropTarget}
+              isNodeSelected={isNodeSelected}
             />
           ))
         )}

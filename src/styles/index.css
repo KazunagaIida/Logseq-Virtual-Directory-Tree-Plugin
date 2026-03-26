@@ -123,6 +123,14 @@
   background: var(--vdt-bg-secondary);
 }
 
+.tree-node-selected {
+  background: rgba(56, 152, 255, 0.12);
+}
+
+.tree-node-selected:hover {
+  background: rgba(56, 152, 255, 0.18);
+}
+
 .tree-node-icon {
   display: inline-flex;
   align-items: center;

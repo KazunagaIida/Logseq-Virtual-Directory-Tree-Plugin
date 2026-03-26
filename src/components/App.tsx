@@ -1,12 +1,14 @@
 import '../styles/index.css';
-import { useCallback } from 'preact/hooks';
+import { useCallback, useEffect } from 'preact/hooks';
 import { useTree } from '../hooks/useTree';
+import { useSelection } from '../hooks/useSelection';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { TreeView } from './TreeView';
 import { ConfirmDialog, LoadingDialog, ResultDialog } from './ConfirmDialog';
 
 export function App() {
   const { tree, activeNode, toggle, navigate, reload, revealPage } = useTree();
+  const { isSelected, toggleSelect, clearSelection } = useSelection(tree);
   const {
     state,
     onDragStart,
@@ -20,8 +22,9 @@ export function App() {
   } = useDragDrop(tree, reload);
 
   const handleClose = useCallback(() => {
+    clearSelection();
     logseq.hideMainUI();
-  }, []);
+  }, [clearSelection]);
 
   const handleReveal = useCallback(async () => {
     try {
@@ -48,6 +51,8 @@ export function App() {
           onNavigate={navigate}
           onReveal={handleReveal}
           onClose={handleClose}
+          onSelect={toggleSelect}
+          isNodeSelected={isSelected}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
