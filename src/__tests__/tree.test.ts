@@ -180,4 +180,27 @@ describe('buildTree', () => {
     expect(tree[0].children[0].isExpanded).toBe(false);
     expect(tree[1].isExpanded).toBe(false);
   });
+
+  it('trims spaces around namespace separators', () => {
+    const tree = buildTree([
+      makePage('dev / react / hooks'),
+      makePage('dev /typescript'),
+    ]);
+
+    expect(tree).toHaveLength(1);
+    const dev = tree[0];
+    expect(dev.name).toBe('dev');
+    expect(dev.fullPath).toBe('dev');
+    expect(dev.children).toHaveLength(2);
+
+    const react = dev.children[0];
+    expect(react.name).toBe('react');
+    expect(react.fullPath).toBe('dev/react');
+    expect(react.children[0].name).toBe('hooks');
+    expect(react.children[0].fullPath).toBe('dev/react/hooks');
+
+    const ts = dev.children[1];
+    expect(ts.name).toBe('typescript');
+    expect(ts.fullPath).toBe('dev/typescript');
+  });
 });

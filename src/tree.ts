@@ -7,7 +7,7 @@ export function buildTree(pages: PageEntity[]): TreeNode[] {
     if (page['journal?']) continue;
 
     const originalName = page.originalName || page.name;
-    const parts = originalName.split('/');
+    const parts = originalName.split('/').map((p) => p.trim());
     let currentLevel = root;
 
     for (let i = 0; i < parts.length; i++) {
