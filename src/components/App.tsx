@@ -1,19 +1,11 @@
 import '../styles/index.css';
-import { useState, useEffect } from 'preact/hooks';
 import { useTree } from '../hooks/useTree';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { TreeView } from './TreeView';
 import { ConfirmDialog, LoadingDialog, ResultDialog } from './ConfirmDialog';
-import { onVisibleChange } from '../index';
 
 export function App() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    onVisibleChange(setVisible);
-  }, []);
-
-  const { tree, toggle, navigate, reload } = useTree(visible);
+  const { tree, toggle, navigate, reload } = useTree();
   const {
     state,
     onDragStart,
@@ -31,11 +23,12 @@ export function App() {
   };
 
   return (
-    <div class="tree-panel">
-      <button class="tree-panel-close" onClick={handleClose} title="Close">
-        ✕
-      </button>
-      <TreeView
+    <div class="tree-overlay" onClick={handleClose}>
+      <div class="tree-panel" onClick={(e: Event) => e.stopPropagation()}>
+        <button class="tree-panel-close" onClick={handleClose} title="Close">
+          ✕
+        </button>
+        <TreeView
         tree={tree}
         onToggle={toggle}
         onNavigate={navigate}
@@ -62,6 +55,7 @@ export function App() {
           onClose={closeResultDialog}
         />
       )}
+      </div>
     </div>
   );
 }

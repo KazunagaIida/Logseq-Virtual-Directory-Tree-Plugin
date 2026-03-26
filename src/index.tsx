@@ -2,44 +2,20 @@ import '@logseq/libs';
 import { render } from 'preact';
 import { App } from './components/App';
 
-let setVisibleCallback: ((visible: boolean) => void) | null = null;
-
-export function onVisibleChange(cb: (visible: boolean) => void) {
-  setVisibleCallback = cb;
-}
+const TOOLBAR_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`;
 
 function main() {
-  console.log('Virtual Directory Tree plugin loaded');
-
-  // Style the main UI iframe as a right-side floating panel
-  logseq.setMainUIInlineStyle({
-    position: 'fixed',
-    top: '0',
-    right: '0',
-    bottom: '0',
-    width: '280px',
-    zIndex: '999',
-  });
-
-  // Register toolbar icon button
-  logseq.App.registerUIItem('toolbar', {
-    key: 'virtual-directory-tree',
-    template: `<a class="button" data-on-click="togglePanel" title="Virtual Directory Tree">📁</a>`,
-  });
-
-  // Model for UI event handlers
   logseq.provideModel({
     togglePanel() {
       logseq.toggleMainUI();
     },
   });
 
-  // Notify App component when panel visibility changes
-  logseq.on('ui:visible:changed', ({ visible }: { visible: boolean }) => {
-    setVisibleCallback?.(visible);
+  logseq.App.registerUIItem('toolbar', {
+    key: 'virtual-directory-tree',
+    template: `<a class="button" data-on-click="togglePanel" title="Virtual Directory Tree">${TOOLBAR_ICON}</a>`,
   });
 
-  // Mount Preact app
   const container = document.getElementById('app');
   if (container) {
     render(<App />, container);

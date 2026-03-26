@@ -9,11 +9,15 @@ export default defineConfig({
       },
     }),
   ],
+  base: './',
   build: {
     outDir: 'dist',
     assetsDir: '.',
     rollupOptions: {
       input: 'index.html',
+      output: {
+        manualChunks: undefined,
+      },
     },
   },
   test: {

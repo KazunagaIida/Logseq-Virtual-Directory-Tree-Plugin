@@ -26,10 +26,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 0 8px;
+  padding: 8px 0;
   font-weight: 600;
-  font-size: 15px;
-  color: var(--ls-primary-text-color, #333);
+  font-size: 14px;
+  color: var(--ls-secondary-text-color, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   border-bottom: 1px solid var(--ls-border-color, #e0e0e0);
   margin-bottom: 4px;
 }
@@ -75,15 +77,24 @@
   /* children are indented via inline style on each node */
 }
 
-.tree-panel {
+.tree-overlay {
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.tree-panel {
+  position: absolute;
   top: 0;
   right: 0;
   width: 280px;
-  height: 100vh;
-  z-index: 999;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+  height: 100%;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.25);
   background: var(--ls-primary-background-color, #fff);
+  border-left: 1px solid var(--ls-border-color, #e0e0e0);
   display: flex;
   flex-direction: column;
 }
