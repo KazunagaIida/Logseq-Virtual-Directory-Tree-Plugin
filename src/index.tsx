@@ -67,9 +67,9 @@ function main() {
         position: 'fixed',
         top: `${toolbarH}px`,
         right: '0',
-        bottom: '0',
         left: 'auto',
         width: '280px',
+        height: `calc(100vh - ${toolbarH}px)`,
         zIndex: '999',
       });
     } else {

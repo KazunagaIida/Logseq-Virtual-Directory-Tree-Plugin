@@ -84,7 +84,7 @@ html, body, #app {
   min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
-  padding: 8px;
+  padding: 8px 8px 32px;
   font-size: 14px;
   color: var(--vdt-text);
   background: var(--vdt-bg);
