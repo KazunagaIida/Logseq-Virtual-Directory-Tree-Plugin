@@ -43,6 +43,24 @@ html, body, #app {
   flex-direction: column;
 }
 
+/* Dialog mode: iframe is full screen, but panel stays 280px on right */
+[data-dialog-mode="true"] .tree-panel {
+  width: 280px;
+  margin-left: auto;
+  margin-top: var(--vdt-toolbar-height, 0px);
+  height: calc(100% - var(--vdt-toolbar-height, 0px));
+}
+
+[data-dialog-mode="true"] {
+  pointer-events: none;
+}
+
+[data-dialog-mode="true"] .tree-panel,
+[data-dialog-mode="true"] .dialog-overlay,
+[data-dialog-mode="true"] .context-menu-overlay {
+  pointer-events: auto;
+}
+
 /* ===== Header (sticky) ===== */
 .tree-panel-header {
   flex-shrink: 0;
@@ -202,6 +220,12 @@ html, body, #app {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: vdt-dialog-fade-in 0.15s ease-out;
+}
+
+@keyframes vdt-dialog-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .dialog-box {

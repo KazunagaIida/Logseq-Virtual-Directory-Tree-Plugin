@@ -66,6 +66,47 @@ export function adjustMainContent(panelWidth: number): void {
   }
 }
 
+// Expand iframe to full screen for dialogs, keep panel at 280px via CSS
+export function expandIframeForDialog(): void {
+  try {
+    document.documentElement.setAttribute('data-dialog-mode', 'true');
+    logseq.setMainUIInlineStyle({
+      position: 'fixed',
+      top: '0',
+      right: '0',
+      bottom: '0',
+      left: '0',
+      width: '100vw',
+      height: '100vh',
+      zIndex: '9999',
+    });
+  } catch {
+    // Fail silently
+  }
+}
+
+export function shrinkIframeToPanel(): void {
+  try {
+    // Shrink iframe first (while data-dialog-mode keeps panel at 280px)
+    const toolbarH = getToolbarHeight();
+    logseq.setMainUIInlineStyle({
+      position: 'fixed',
+      top: `${toolbarH}px`,
+      right: '0',
+      left: 'auto',
+      width: '280px',
+      height: `calc(100vh - ${toolbarH}px)`,
+      zIndex: '999',
+    });
+    // Remove dialog mode after iframe has resized
+    setTimeout(() => {
+      document.documentElement.removeAttribute('data-dialog-mode');
+    }, 50);
+  } catch {
+    // Fail silently
+  }
+}
+
 export function resetMainContent(): void {
   try {
     if (activeElement) {

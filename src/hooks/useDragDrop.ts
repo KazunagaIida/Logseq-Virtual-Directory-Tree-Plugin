@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'preact/hooks';
 import type { TreeNode } from '../types';
 import { checkCircularDrop } from '../utils/validation';
 import { buildRenameList, buildRenameListMulti, executeRenames } from '../utils/rename';
+import { expandIframeForDialog, shrinkIframeToPanel } from '../utils/panelLayout';
 import type { RenameEntry, RenameResult } from '../utils/rename';
 
 export interface DragDropState {
@@ -119,6 +120,7 @@ export function useDragDrop(
   }, []);
 
   const onDragEnd = useCallback(() => {
+    // Also handles Escape: browser cancels drag natively and fires dragend
     dragSourcesRef.current = [];
     setState((prev) => ({ ...prev, dropTarget: null, sourceCount: 0 }));
   }, []);
@@ -146,6 +148,7 @@ export function useDragDrop(
 
       dragSourcesRef.current = [];
       clearSelection?.();
+      expandIframeForDialog();
       setState((prev) => ({
         ...prev,
         dropTarget: null,
@@ -190,6 +193,10 @@ export function useDragDrop(
       },
     }));
 
+    if (result.failed.length === 0) {
+      shrinkIframeToPanel();
+    }
+
     onComplete();
   }, [state.confirmDialog, onComplete]);
 
@@ -204,6 +211,7 @@ export function useDragDrop(
         renameList: [],
       },
     }));
+    shrinkIframeToPanel();
   }, []);
 
   const closeResultDialog = useCallback(() => {
@@ -211,6 +219,7 @@ export function useDragDrop(
       ...prev,
       resultDialog: { visible: false, result: null },
     }));
+    shrinkIframeToPanel();
   }, []);
 
   return {

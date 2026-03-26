@@ -6,7 +6,7 @@ import { useSelection } from '../hooks/useSelection';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { buildRenameList, executeRenames } from '../utils/rename';
-import { resetMainContent } from '../utils/panelLayout';
+import { resetMainContent, expandIframeForDialog, shrinkIframeToPanel } from '../utils/panelLayout';
 import { TreeView } from './TreeView';
 import { ConfirmDialog, LoadingDialog, ResultDialog } from './ConfirmDialog';
 import { CreatePageDialog } from './CreatePageDialog';
@@ -77,10 +77,12 @@ export function App() {
   const handleCreatePage = useCallback(() => {
     setCreatePrefix(getSelectedFolderPrefix());
     setShowCreateDialog(true);
+    expandIframeForDialog();
   }, [getSelectedFolderPrefix]);
 
   const handleCreateConfirm = useCallback(async (fullPageName: string) => {
     setShowCreateDialog(false);
+    shrinkIframeToPanel();
     try {
       await logseq.Editor.createPage(fullPageName);
       logseq.App.pushState('page', { name: fullPageName });
@@ -91,6 +93,7 @@ export function App() {
 
   const handleCreateCancel = useCallback(() => {
     setShowCreateDialog(false);
+    shrinkIframeToPanel();
   }, []);
 
   // Context menu actions
@@ -155,6 +158,7 @@ export function App() {
   const handleCtxDelete = useCallback(() => {
     if (menu.node) {
       setDeleteConfirm(menu.node);
+      expandIframeForDialog();
     }
     closeMenu();
   }, [menu.node, closeMenu]);
@@ -167,11 +171,13 @@ export function App() {
       console.error('Failed to delete:', err);
     }
     setDeleteConfirm(null);
+    shrinkIframeToPanel();
     reload();
   }, [deleteConfirm, reload]);
 
   const handleDeleteCancel = useCallback(() => {
     setDeleteConfirm(null);
+    shrinkIframeToPanel();
   }, []);
 
   const handleCtxCopyPath = useCallback(() => {
@@ -185,6 +191,7 @@ export function App() {
     if (menu.node) {
       setCreatePrefix(menu.node.fullPath);
       setShowCreateDialog(true);
+      expandIframeForDialog();
     }
     closeMenu();
   }, [menu.node, closeMenu]);
