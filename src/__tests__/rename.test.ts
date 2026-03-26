@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { buildRenameList, executeRenames } from '../utils/rename';
+import { buildRenameList, buildRenameListMulti, executeRenames } from '../utils/rename';
 import type { TreeNode } from '../types';
 
 function makeNode(
@@ -64,6 +64,46 @@ describe('buildRenameList', () => {
     expect(list).toEqual([
       { oldName: 'dev/react', newName: 'react' },
       { oldName: 'dev/react/hooks', newName: 'react/hooks' },
+    ]);
+  });
+});
+
+describe('buildRenameListMulti', () => {
+  it('merges rename lists from 2 nodes', () => {
+    const node1 = makeNode('dev/react/hooks', 'page');
+    const node2 = makeNode('dev/react/state', 'page');
+    const list = buildRenameListMulti([node1, node2], 'cooking');
+    expect(list).toEqual([
+      { oldName: 'dev/react/hooks', newName: 'cooking/hooks' },
+      { oldName: 'dev/react/state', newName: 'cooking/state' },
+    ]);
+  });
+
+  it('deduplicates pages that appear in multiple sources', () => {
+    // Parent node includes child, and child is also a separate source
+    const parent = makeNode('dev/react', 'both', [
+      makeNode('dev/react/hooks', 'page'),
+    ]);
+    const child = makeNode('dev/react/hooks', 'page');
+    const list = buildRenameListMulti([parent, child], 'archive');
+    // dev/react/hooks should appear only once
+    expect(list).toEqual([
+      { oldName: 'dev/react', newName: 'archive/react' },
+      { oldName: 'dev/react/hooks', newName: 'archive/react/hooks' },
+    ]);
+  });
+
+  it('handles parent-child nodes correctly', () => {
+    const parent = makeNode('dev', 'folder', [
+      makeNode('dev/react', 'page'),
+      makeNode('dev/ts', 'page'),
+    ]);
+    const sibling = makeNode('cooking/sv', 'page');
+    const list = buildRenameListMulti([parent, sibling], 'archive');
+    expect(list).toEqual([
+      { oldName: 'dev/react', newName: 'archive/dev/react' },
+      { oldName: 'dev/ts', newName: 'archive/dev/ts' },
+      { oldName: 'cooking/sv', newName: 'archive/sv' },
     ]);
   });
 });

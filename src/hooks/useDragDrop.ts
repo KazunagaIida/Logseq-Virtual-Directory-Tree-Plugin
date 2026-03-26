@@ -1,15 +1,17 @@
 import { useState, useCallback, useRef } from 'preact/hooks';
 import type { TreeNode } from '../types';
 import { checkCircularDrop } from '../utils/validation';
-import { buildRenameList, executeRenames } from '../utils/rename';
+import { buildRenameList, buildRenameListMulti, executeRenames } from '../utils/rename';
 import type { RenameEntry, RenameResult } from '../utils/rename';
 
 export interface DragDropState {
-  dropTarget: string | null; // fullPath of the drop target, or '__root__' for root
+  dropTarget: string | null;
   isLoading: boolean;
+  sourceCount: number; // number of items being dragged
   confirmDialog: {
     visible: boolean;
     sourceNode: TreeNode | null;
+    sourceNodes: TreeNode[];
     targetPath: string;
     renameList: RenameEntry[];
   };
@@ -28,19 +30,34 @@ function findNode(nodes: TreeNode[], fullPath: string): TreeNode | null {
   return null;
 }
 
-export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
-  const dragSourceRef = useRef<TreeNode | null>(null);
+export function useDragDrop(
+  tree: TreeNode[],
+  onComplete: () => void,
+  selectedPaths?: Set<string>,
+  clearSelection?: () => void
+) {
+  const dragSourcesRef = useRef<TreeNode[]>([]);
   const [state, setState] = useState<DragDropState>({
     dropTarget: null,
     isLoading: false,
-    confirmDialog: { visible: false, sourceNode: null, targetPath: '', renameList: [] },
+    sourceCount: 0,
+    confirmDialog: {
+      visible: false,
+      sourceNode: null,
+      sourceNodes: [],
+      targetPath: '',
+      renameList: [],
+    },
     resultDialog: { visible: false, result: null },
   });
 
-  const canDrop = useCallback(
-    (sourceFullPath: string, targetFullPath: string): boolean => {
+  const canDropAny = useCallback(
+    (sources: TreeNode[], targetFullPath: string): boolean => {
       if (targetFullPath === '__root__') return true;
-      return !checkCircularDrop(sourceFullPath, targetFullPath);
+      // At least one source can be dropped
+      return sources.some(
+        (s) => !checkCircularDrop(s.fullPath, targetFullPath)
+      );
     },
     []
   );
@@ -50,9 +67,24 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
       if (!e.dataTransfer) return;
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', node.fullPath);
-      dragSourceRef.current = node;
+
+      // If the dragged node is selected, drag all selected nodes
+      if (selectedPaths && selectedPaths.has(node.fullPath) && selectedPaths.size > 1) {
+        const sources: TreeNode[] = [];
+        for (const path of selectedPaths) {
+          const found = findNode(tree, path);
+          if (found) sources.push(found);
+        }
+        dragSourcesRef.current = sources;
+        setState((prev) => ({ ...prev, sourceCount: sources.length }));
+      } else {
+        // Single drag (unselected node or single selection)
+        dragSourcesRef.current = [node];
+        clearSelection?.();
+        setState((prev) => ({ ...prev, sourceCount: 1 }));
+      }
     },
-    []
+    [tree, selectedPaths, clearSelection]
   );
 
   const onDragOver = useCallback(
@@ -60,17 +92,17 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
       e.preventDefault();
       if (!e.dataTransfer) return;
 
-      const source = dragSourceRef.current;
-      if (!source) return;
+      const sources = dragSourcesRef.current;
+      if (sources.length === 0) return;
 
-      if (canDrop(source.fullPath, targetFullPath)) {
+      if (canDropAny(sources, targetFullPath)) {
         e.dataTransfer.dropEffect = 'move';
         setState((prev) => ({ ...prev, dropTarget: targetFullPath }));
       } else {
         e.dataTransfer.dropEffect = 'none';
       }
     },
-    [canDrop]
+    [canDropAny]
   );
 
   const onDragLeave = useCallback(() => {
@@ -78,34 +110,47 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
   }, []);
 
   const onDragEnd = useCallback(() => {
-    dragSourceRef.current = null;
-    setState((prev) => ({ ...prev, dropTarget: null }));
+    dragSourcesRef.current = [];
+    setState((prev) => ({ ...prev, dropTarget: null, sourceCount: 0 }));
   }, []);
 
   const onDrop = useCallback(
     (targetFullPath: string, e: DragEvent) => {
       e.preventDefault();
-      const sourceNode = dragSourceRef.current;
-      if (!sourceNode) return;
-
-      if (!canDrop(sourceNode.fullPath, targetFullPath)) return;
+      const sources = dragSourcesRef.current;
+      if (sources.length === 0) return;
 
       const targetPath = targetFullPath === '__root__' ? '' : targetFullPath;
-      const renameList = buildRenameList(sourceNode, targetPath);
 
-      dragSourceRef.current = null;
+      // Filter out sources that would cause circular drops
+      const validSources = sources.filter((s) => {
+        if (targetFullPath === '__root__') return true;
+        return !checkCircularDrop(s.fullPath, targetFullPath);
+      });
+
+      if (validSources.length === 0) return;
+
+      const renameList =
+        validSources.length === 1
+          ? buildRenameList(validSources[0], targetPath)
+          : buildRenameListMulti(validSources, targetPath);
+
+      dragSourcesRef.current = [];
+      clearSelection?.();
       setState((prev) => ({
         ...prev,
         dropTarget: null,
+        sourceCount: 0,
         confirmDialog: {
           visible: true,
-          sourceNode,
+          sourceNode: validSources[0],
+          sourceNodes: validSources,
           targetPath,
           renameList,
         },
       }));
     },
-    [canDrop]
+    [clearSelection]
   );
 
   const confirmMove = useCallback(async () => {
@@ -142,7 +187,13 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
   const cancelMove = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      confirmDialog: { visible: false, sourceNode: null, targetPath: '', renameList: [] },
+      confirmDialog: {
+        visible: false,
+        sourceNode: null,
+        sourceNodes: [],
+        targetPath: '',
+        renameList: [],
+      },
     }));
   }, []);
 

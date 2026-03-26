@@ -201,4 +201,76 @@ describe('useDragDrop', () => {
 
     expect(result.current.state.confirmDialog.visible).toBe(false);
   });
+
+  describe('multi-select drag & drop', () => {
+    it('drags all selected nodes when dragging a selected node', () => {
+      const selected = new Set(['dev/react/hooks', 'dev/typescript/generics']);
+      const clearSel = vi.fn();
+      const { result } = renderHook(() =>
+        useDragDrop(tree, onComplete, selected, clearSel)
+      );
+      const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto cooking
+      act(() => {
+        result.current.onDrop('cooking', makeDragEvent());
+      });
+
+      // Both nodes should be in the rename list
+      expect(result.current.state.confirmDialog.visible).toBe(true);
+      expect(result.current.state.confirmDialog.renameList.length).toBeGreaterThanOrEqual(2);
+      const oldNames = result.current.state.confirmDialog.renameList.map((r) => r.oldName);
+      expect(oldNames).toContain('dev/react/hooks');
+      expect(oldNames).toContain('dev/typescript/generics');
+    });
+
+    it('drags only the single node when dragging an unselected node', () => {
+      const selected = new Set(['dev/react/hooks', 'dev/typescript/generics']);
+      const clearSel = vi.fn();
+      const { result } = renderHook(() =>
+        useDragDrop(tree, onComplete, selected, clearSel)
+      );
+      const unselectedNode = tree[2]; // memo (not selected)
+
+      act(() => {
+        result.current.onDragStart(unselectedNode, makeDragEvent());
+      });
+
+      expect(clearSel).toHaveBeenCalled();
+
+      act(() => {
+        result.current.onDrop('cooking', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.renameList).toHaveLength(1);
+      expect(result.current.state.confirmDialog.renameList[0].oldName).toBe('memo');
+    });
+
+    it('skips circular sources but moves others', () => {
+      // Select dev (parent) and memo (unrelated)
+      const selected = new Set(['dev', 'memo']);
+      const clearSel = vi.fn();
+      const { result } = renderHook(() =>
+        useDragDrop(tree, onComplete, selected, clearSel)
+      );
+
+      act(() => {
+        result.current.onDragStart(tree[0], makeDragEvent()); // dev
+      });
+
+      // Drop onto dev/react — dev is circular, memo is fine
+      act(() => {
+        result.current.onDrop('dev/react', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(true);
+      const oldNames = result.current.state.confirmDialog.renameList.map((r) => r.oldName);
+      expect(oldNames).toContain('memo');
+      expect(oldNames).not.toContain('dev');
+    });
+  });
 });

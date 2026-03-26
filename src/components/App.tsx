@@ -8,7 +8,7 @@ import { ConfirmDialog, LoadingDialog, ResultDialog } from './ConfirmDialog';
 
 export function App() {
   const { tree, activeNode, toggle, navigate, reload, revealPage } = useTree();
-  const { isSelected, toggleSelect, clearSelection } = useSelection(tree);
+  const { selectedPaths, isSelected, toggleSelect, clearSelection } = useSelection(tree);
   const {
     state,
     onDragStart,
@@ -19,7 +19,7 @@ export function App() {
     confirmMove,
     cancelMove,
     closeResultDialog,
-  } = useDragDrop(tree, reload);
+  } = useDragDrop(tree, reload, selectedPaths, clearSelection);
 
   const handleClose = useCallback(() => {
     clearSelection();
@@ -63,6 +63,7 @@ export function App() {
         {state.confirmDialog.visible && state.confirmDialog.sourceNode && (
           <ConfirmDialog
             sourceNode={state.confirmDialog.sourceNode}
+            sourceNodes={state.confirmDialog.sourceNodes}
             targetPath={state.confirmDialog.targetPath}
             renameList={state.confirmDialog.renameList}
             onConfirm={confirmMove}

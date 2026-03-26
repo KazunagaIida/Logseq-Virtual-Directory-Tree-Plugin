@@ -47,6 +47,27 @@ export function buildRenameList(
   });
 }
 
+// Build rename lists for multiple source nodes, merge, and deduplicate.
+export function buildRenameListMulti(
+  sourceNodes: TreeNode[],
+  targetFolder: string
+): RenameEntry[] {
+  const seen = new Set<string>();
+  const result: RenameEntry[] = [];
+
+  for (const node of sourceNodes) {
+    const entries = buildRenameList(node, targetFolder);
+    for (const entry of entries) {
+      if (!seen.has(entry.oldName)) {
+        seen.add(entry.oldName);
+        result.push(entry);
+      }
+    }
+  }
+
+  return result;
+}
+
 // Execute renames sequentially with a 50ms pause between each.
 // Uses logseq.Editor.getPage to check for conflicts and renamePage to perform the rename.
 export async function executeRenames(

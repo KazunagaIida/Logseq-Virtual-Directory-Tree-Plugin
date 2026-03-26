@@ -3,6 +3,7 @@ import type { TreeNode } from '../types';
 
 interface ConfirmDialogProps {
   sourceNode: TreeNode;
+  sourceNodes?: TreeNode[];
   targetPath: string;
   renameList: RenameEntry[];
   onConfirm: () => void;
@@ -11,25 +12,39 @@ interface ConfirmDialogProps {
 
 export function ConfirmDialog({
   sourceNode,
+  sourceNodes,
   targetPath,
   renameList,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const sources = sourceNodes && sourceNodes.length > 1 ? sourceNodes : [sourceNode];
+  const isMulti = sources.length > 1;
   const isFolder = sourceNode.type === 'folder' || sourceNode.type === 'both';
   const targetDisplay = targetPath === '' ? '/ (root)' : targetPath + '/';
+
+  const title = isMulti
+    ? `Move ${sources.length} items?`
+    : isFolder
+      ? 'Move folder?'
+      : 'Move page?';
 
   return (
     <div class="dialog-overlay" data-testid="confirm-dialog">
       <div class="dialog-box">
-        <div class="dialog-title">
-          {isFolder ? 'Move folder?' : 'Move page?'}
-        </div>
+        <div class="dialog-title">{title}</div>
         <div class="dialog-body">
-          <div class="dialog-field">
-            <strong>From:</strong> {sourceNode.fullPath}
-            {isFolder ? '/' : ''}
-          </div>
+          {isMulti ? (
+            <div class="dialog-field">
+              <strong>Items:</strong>{' '}
+              {sources.map((s) => s.displayName).join(', ')}
+            </div>
+          ) : (
+            <div class="dialog-field">
+              <strong>From:</strong> {sourceNode.fullPath}
+              {isFolder ? '/' : ''}
+            </div>
+          )}
           <div class="dialog-field">
             <strong>To:</strong> {targetDisplay}
           </div>
