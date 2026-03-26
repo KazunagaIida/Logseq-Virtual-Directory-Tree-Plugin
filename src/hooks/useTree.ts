@@ -41,9 +41,10 @@ function toggleNodeExpanded(
   });
 }
 
-export function useTree() {
+export function useTree(visible: boolean) {
   const [tree, setTree] = useState<TreeNode[]>([]);
   const expandedRef = useRef<Set<string>>(new Set());
+  const loadedOnceRef = useRef(false);
 
   const loadTree = useCallback(async () => {
     try {
@@ -69,8 +70,25 @@ export function useTree() {
     }
   }, []);
 
+  // Load tree only when the panel becomes visible for the first time
   useEffect(() => {
-    loadTree();
+    if (!visible) return;
+    if (!loadedOnceRef.current) {
+      loadedOnceRef.current = true;
+      loadTree();
+    }
+  }, [visible, loadTree]);
+
+  // Refresh tree when panel becomes visible again (data may have changed)
+  useEffect(() => {
+    if (visible && loadedOnceRef.current) {
+      loadTree();
+    }
+  }, [visible, loadTree]);
+
+  // Register DB change listener only after first load
+  useEffect(() => {
+    if (!loadedOnceRef.current) return;
 
     const debouncedReload = debounce(() => {
       loadTree();
@@ -81,7 +99,7 @@ export function useTree() {
     return () => {
       if (typeof off === 'function') off();
     };
-  }, [loadTree]);
+  }, [loadTree, tree]); // tree dependency ensures this runs after first load
 
   const toggle = useCallback(
     (fullPath: string) => {

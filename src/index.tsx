@@ -2,6 +2,12 @@ import '@logseq/libs';
 import { render } from 'preact';
 import { App } from './components/App';
 
+let setVisibleCallback: ((visible: boolean) => void) | null = null;
+
+export function onVisibleChange(cb: (visible: boolean) => void) {
+  setVisibleCallback = cb;
+}
+
 function main() {
   console.log('Virtual Directory Tree plugin loaded');
 
@@ -26,6 +32,11 @@ function main() {
     togglePanel() {
       logseq.toggleMainUI();
     },
+  });
+
+  // Notify App component when panel visibility changes
+  logseq.on('ui:visible:changed', ({ visible }: { visible: boolean }) => {
+    setVisibleCallback?.(visible);
   });
 
   // Mount Preact app
