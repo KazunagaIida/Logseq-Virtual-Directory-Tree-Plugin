@@ -1,82 +1,30 @@
-.tree-container {
-  overflow-y: auto;
-  overflow-x: auto;
-  height: 100%;
-  padding: 8px;
-  font-size: 14px;
-  color: var(--ls-primary-text-color, #333);
-  background: var(--ls-primary-background-color, #fff);
+/* ===== Theme definitions ===== */
+:root,
+[data-theme="light"] {
+  --vdt-bg: #ffffff;
+  --vdt-bg-secondary: #f0f0f0;
+  --vdt-text: #1a1a1a;
+  --vdt-text-secondary: #8c8c8c;
+  --vdt-border: #e0e0e0;
+  --vdt-icon: #777777;
+  --vdt-link: #045591;
+  --vdt-scrollbar: rgba(0, 0, 0, 0.25);
+  --vdt-shadow: rgba(0, 0, 0, 0.15);
 }
 
-.tree-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+[data-theme="dark"] {
+  --vdt-bg: #002b36;
+  --vdt-bg-secondary: #073642;
+  --vdt-text: #d4d4d4;
+  --vdt-text-secondary: #8c8c8c;
+  --vdt-border: #394b51;
+  --vdt-icon: #999999;
+  --vdt-link: #6db3f2;
+  --vdt-scrollbar: rgba(255, 255, 255, 0.2);
+  --vdt-shadow: rgba(0, 0, 0, 0.5);
 }
 
-.tree-container::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 3px;
-}
-
-.tree-container:hover::-webkit-scrollbar-thumb {
-  background: var(--ls-scrollbar-thumb-hover-color, rgba(0, 0, 0, 0.3));
-}
-
-.tree-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 0;
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--ls-secondary-text-color, #999);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--ls-border-color, #e0e0e0);
-  margin-bottom: 4px;
-}
-
-.tree-node {
-  display: flex;
-  align-items: center;
-  padding: 2px 0;
-  cursor: pointer;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.tree-node:hover {
-  background: var(--ls-secondary-background-color, #f5f5f5);
-}
-
-.tree-node-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  font-size: 10px;
-  color: var(--ls-icon-color, #666);
-  user-select: none;
-}
-
-.tree-node-label {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-.tree-node-label.clickable:hover {
-  color: var(--ls-link-text-color, #045591);
-}
-
-.tree-node-children {
-  /* children are indented via inline style on each node */
-}
-
+/* ===== Panel layout ===== */
 .tree-overlay {
   position: fixed;
   top: 0;
@@ -92,9 +40,9 @@
   right: 0;
   width: 280px;
   height: 100%;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.25);
-  background: var(--ls-primary-background-color, #fff);
-  border-left: 1px solid var(--ls-border-color, #e0e0e0);
+  box-shadow: -2px 0 8px var(--vdt-shadow);
+  background: var(--vdt-bg);
+  border-left: 1px solid var(--vdt-border);
   display: flex;
   flex-direction: column;
 }
@@ -107,36 +55,121 @@
   border: none;
   cursor: pointer;
   font-size: 16px;
-  color: var(--ls-icon-color, #666);
+  color: var(--vdt-icon);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
 .tree-panel-close:hover {
-  background: var(--ls-secondary-background-color, #f5f5f5);
+  background: var(--vdt-bg-secondary);
+}
+
+/* ===== Tree container ===== */
+.tree-container {
+  overflow-y: auto;
+  overflow-x: auto;
+  height: 100%;
+  padding: 8px;
+  font-size: 14px;
+  color: var(--vdt-text);
+  background: var(--vdt-bg);
+}
+
+.tree-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tree-container::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.tree-container:hover::-webkit-scrollbar-thumb {
+  background: var(--vdt-scrollbar);
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--vdt-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--vdt-border);
+  margin-bottom: 4px;
+}
+
+/* ===== Tree nodes ===== */
+.tree-node {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+  border-left: 3px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.tree-node:hover {
+  background: var(--vdt-bg-secondary);
+}
+
+.tree-node-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--vdt-icon);
+  user-select: none;
+}
+
+.tree-node-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.tree-node-label.clickable:hover {
+  color: var(--vdt-link);
+}
+
+.tree-node-children {
+  /* children are indented via inline style on each node */
 }
 
 .tree-warning {
   padding: 12px;
-  color: var(--ls-secondary-text-color, #666);
+  color: var(--vdt-text-secondary);
   font-style: italic;
 }
 
-/* Drag & Drop styles */
+/* ===== Drag & Drop ===== */
 .tree-node[draggable="true"] {
   cursor: grab;
 }
 
-.tree-node-drop-target {
-  background: var(--ls-selection-background-color, rgba(0, 120, 255, 0.15));
-  outline: 1px dashed var(--ls-link-text-color, #045591);
+.tree-node.tree-node-drop-target {
+  background: rgba(56, 152, 255, 0.2);
+  border-left-color: #3898ff;
 }
 
 .tree-root-drop-target {
-  background: var(--ls-selection-background-color, rgba(0, 120, 255, 0.08));
+  background: rgba(56, 152, 255, 0.08);
+  outline: 2px dashed rgba(56, 152, 255, 0.5);
+  outline-offset: -2px;
 }
 
-/* Dialog styles */
+/* ===== Dialogs ===== */
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -151,26 +184,27 @@
 }
 
 .dialog-box {
-  background: var(--ls-primary-background-color, #fff);
+  background: var(--vdt-bg);
+  border: 1px solid var(--vdt-border);
   border-radius: 8px;
   padding: 20px;
   min-width: 320px;
   max-width: 480px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 24px var(--vdt-shadow);
 }
 
 .dialog-title {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 12px;
-  color: var(--ls-primary-text-color, #333);
+  color: var(--vdt-text);
 }
 
 .dialog-body {
   font-size: 13px;
-  color: var(--ls-primary-text-color, #333);
+  color: var(--vdt-text);
 }
 
 .dialog-field {
@@ -180,7 +214,7 @@
 .dialog-rename-list {
   margin-top: 8px;
   padding: 8px;
-  background: var(--ls-secondary-background-color, #f5f5f5);
+  background: var(--vdt-bg-secondary);
   border-radius: 4px;
   font-size: 12px;
   max-height: 200px;
@@ -194,37 +228,37 @@
 
 .dialog-rename-more {
   padding: 4px 0;
-  color: var(--ls-secondary-text-color, #666);
+  color: var(--vdt-text-secondary);
   font-style: italic;
 }
 
 .dialog-success {
-  color: var(--ls-primary-text-color, #333);
+  color: var(--vdt-text);
 }
 
 .dialog-failure {
-  color: #d32f2f;
+  color: #e55;
 }
 
 .dialog-error-detail {
   font-size: 11px;
   padding-left: 20px;
-  color: var(--ls-secondary-text-color, #666);
+  color: var(--vdt-text-secondary);
 }
 
 .dialog-reindex-hint {
   margin-top: 12px;
   padding: 8px;
-  background: var(--ls-secondary-background-color, #f5f5f5);
+  background: var(--vdt-bg-secondary);
   border-radius: 4px;
   font-size: 12px;
-  color: var(--ls-secondary-text-color, #666);
+  color: var(--vdt-text-secondary);
 }
 
 .dialog-loading {
   padding: 16px 0;
   text-align: center;
-  color: var(--ls-secondary-text-color, #666);
+  color: var(--vdt-text-secondary);
 }
 
 .dialog-actions {
@@ -237,11 +271,11 @@
 .dialog-btn {
   padding: 6px 16px;
   border-radius: 4px;
-  border: 1px solid var(--ls-border-color, #ddd);
+  border: 1px solid var(--vdt-border);
   cursor: pointer;
   font-size: 13px;
-  background: var(--ls-secondary-background-color, #f5f5f5);
-  color: var(--ls-primary-text-color, #333);
+  background: var(--vdt-bg-secondary);
+  color: var(--vdt-text);
 }
 
 .dialog-btn:hover {
@@ -249,11 +283,11 @@
 }
 
 .dialog-btn-confirm {
-  background: var(--ls-link-text-color, #045591);
+  background: var(--vdt-link);
   color: #fff;
   border-color: transparent;
 }
 
 .dialog-btn-cancel {
-  background: var(--ls-secondary-background-color, #f5f5f5);
+  background: var(--vdt-bg-secondary);
 }

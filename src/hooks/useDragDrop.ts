@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'preact/hooks';
+import { useState, useCallback, useRef } from 'preact/hooks';
 import type { TreeNode } from '../types';
 import { checkCircularDrop } from '../utils/validation';
 import { buildRenameList, executeRenames } from '../utils/rename';
 import type { RenameEntry, RenameResult } from '../utils/rename';
 
 export interface DragDropState {
-  dragSource: TreeNode | null;
   dropTarget: string | null; // fullPath of the drop target, or '__root__' for root
   isLoading: boolean;
   confirmDialog: {
@@ -30,8 +29,8 @@ function findNode(nodes: TreeNode[], fullPath: string): TreeNode | null {
 }
 
 export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
+  const dragSourceRef = useRef<TreeNode | null>(null);
   const [state, setState] = useState<DragDropState>({
-    dragSource: null,
     dropTarget: null,
     isLoading: false,
     confirmDialog: { visible: false, sourceNode: null, targetPath: '', renameList: [] },
@@ -48,11 +47,10 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
 
   const onDragStart = useCallback(
     (node: TreeNode, e: DragEvent) => {
-      // Prevent dragging journal pages (shouldn't exist in tree, but guard)
       if (!e.dataTransfer) return;
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', node.fullPath);
-      setState((prev) => ({ ...prev, dragSource: node }));
+      dragSourceRef.current = node;
     },
     []
   );
@@ -62,17 +60,17 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
       e.preventDefault();
       if (!e.dataTransfer) return;
 
-      const sourceFullPath = state.dragSource?.fullPath;
-      if (!sourceFullPath) return;
+      const source = dragSourceRef.current;
+      if (!source) return;
 
-      if (canDrop(sourceFullPath, targetFullPath)) {
+      if (canDrop(source.fullPath, targetFullPath)) {
         e.dataTransfer.dropEffect = 'move';
         setState((prev) => ({ ...prev, dropTarget: targetFullPath }));
       } else {
         e.dataTransfer.dropEffect = 'none';
       }
     },
-    [state.dragSource, canDrop]
+    [canDrop]
   );
 
   const onDragLeave = useCallback(() => {
@@ -80,13 +78,14 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
   }, []);
 
   const onDragEnd = useCallback(() => {
-    setState((prev) => ({ ...prev, dragSource: null, dropTarget: null }));
+    dragSourceRef.current = null;
+    setState((prev) => ({ ...prev, dropTarget: null }));
   }, []);
 
   const onDrop = useCallback(
     (targetFullPath: string, e: DragEvent) => {
       e.preventDefault();
-      const sourceNode = state.dragSource;
+      const sourceNode = dragSourceRef.current;
       if (!sourceNode) return;
 
       if (!canDrop(sourceNode.fullPath, targetFullPath)) return;
@@ -94,9 +93,9 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
       const targetPath = targetFullPath === '__root__' ? '' : targetFullPath;
       const renameList = buildRenameList(sourceNode, targetPath);
 
+      dragSourceRef.current = null;
       setState((prev) => ({
         ...prev,
-        dragSource: null,
         dropTarget: null,
         confirmDialog: {
           visible: true,
@@ -106,7 +105,7 @@ export function useDragDrop(tree: TreeNode[], onComplete: () => void) {
         },
       }));
     },
-    [state.dragSource, canDrop]
+    [canDrop]
   );
 
   const confirmMove = useCallback(async () => {
