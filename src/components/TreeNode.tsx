@@ -61,6 +61,7 @@ export function TreeNodeComponent({
 
   const handleDragOver = (e: DragEvent) => {
     if (isFolder) {
+      e.stopPropagation();
       onDragOver?.(node.fullPath, e);
     }
   };
