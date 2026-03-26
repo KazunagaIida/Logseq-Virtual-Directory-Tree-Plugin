@@ -6,6 +6,7 @@ import { useSelection } from '../hooks/useSelection';
 import { useDragDrop } from '../hooks/useDragDrop';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { buildRenameList, executeRenames } from '../utils/rename';
+import { resetMainContent } from '../utils/panelLayout';
 import { TreeView } from './TreeView';
 import { ConfirmDialog, LoadingDialog, ResultDialog } from './ConfirmDialog';
 import { CreatePageDialog } from './CreatePageDialog';
@@ -34,6 +35,7 @@ export function App() {
 
   const handleClose = useCallback(() => {
     clearSelection();
+    resetMainContent();
     logseq.hideMainUI();
   }, [clearSelection]);
 
