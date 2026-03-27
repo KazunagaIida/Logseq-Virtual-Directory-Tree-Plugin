@@ -18,9 +18,12 @@ export interface TreeNode {
 
   // Collapse/expand state
   isExpanded: boolean;
+
+  // Millisecond timestamp (pages: from API, folders: max of descendants)
+  updatedAt?: number;
 }
 
-export type SortKey = 'name';
+export type SortKey = 'name' | 'updatedAt';
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {

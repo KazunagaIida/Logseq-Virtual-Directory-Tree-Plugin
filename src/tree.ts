@@ -29,11 +29,15 @@ export function buildTree(pages: PageEntity[], sortConfig?: SortConfig): TreeNod
           type: isLast ? 'page' : 'folder',
           children: [],
           isExpanded: false,
+          updatedAt: isLast && typeof page.updatedAt === 'number' ? page.updatedAt : undefined,
         };
         currentLevel.push(existing);
       } else if (isLast && existing.type === 'folder') {
         // Node was a folder, now also a page
         existing.type = 'both';
+        if (typeof page.updatedAt === 'number') {
+          existing.updatedAt = page.updatedAt;
+        }
       } else if (!isLast && existing.type === 'page') {
         // Node was a page, now also a folder (will get children)
         existing.type = 'both';
@@ -43,8 +47,25 @@ export function buildTree(pages: PageEntity[], sortConfig?: SortConfig): TreeNod
     }
   }
 
+  propagateUpdatedAt(root);
   sortTree(root, sortConfig);
   return root;
+}
+
+export function propagateUpdatedAt(nodes: TreeNode[]): void {
+  for (const node of nodes) {
+    if (node.children.length > 0) {
+      propagateUpdatedAt(node.children);
+      let maxChild = 0;
+      for (const child of node.children) {
+        if ((child.updatedAt ?? 0) > maxChild) {
+          maxChild = child.updatedAt ?? 0;
+        }
+      }
+      const own = node.updatedAt ?? 0;
+      node.updatedAt = Math.max(own, maxChild) || undefined;
+    }
+  }
 }
 
 export function sortTree(
@@ -60,7 +81,12 @@ export function sortTree(
       if (aIsFolder && !bIsFolder) return -1;
       if (!aIsFolder && bIsFolder) return 1;
     }
-    const cmp = a.name.localeCompare(b.name);
+    let cmp: number;
+    if (config.key === 'updatedAt') {
+      cmp = (a.updatedAt ?? 0) - (b.updatedAt ?? 0);
+    } else {
+      cmp = a.name.localeCompare(b.name);
+    }
     return config.direction === 'desc' ? -cmp : cmp;
   });
   nodes.forEach((n) => sortTree(n.children, config));
