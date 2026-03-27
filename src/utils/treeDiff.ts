@@ -15,7 +15,9 @@ export function hasTreeChanged(
   const newSigs: string[] = [];
   collectSignatures(oldTree, oldSigs);
   collectSignatures(newTree, newSigs);
-  oldSigs.sort();
-  newSigs.sort();
-  return JSON.stringify(oldSigs) !== JSON.stringify(newSigs);
+  if (oldSigs.length !== newSigs.length) return true;
+  for (let i = 0; i < oldSigs.length; i++) {
+    if (oldSigs[i] !== newSigs[i]) return true;
+  }
+  return false;
 }

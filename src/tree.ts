@@ -1,6 +1,7 @@
-import type { TreeNode, PageEntity } from './types';
+import type { TreeNode, PageEntity, SortConfig } from './types';
+import { DEFAULT_SORT_CONFIG } from './types';
 
-export function buildTree(pages: PageEntity[]): TreeNode[] {
+export function buildTree(pages: PageEntity[], sortConfig?: SortConfig): TreeNode[] {
   const root: TreeNode[] = [];
 
   for (const page of pages) {
@@ -42,19 +43,25 @@ export function buildTree(pages: PageEntity[]): TreeNode[] {
     }
   }
 
-  sortTree(root);
+  sortTree(root, sortConfig);
   return root;
 }
 
-export function sortTree(nodes: TreeNode[]): void {
+export function sortTree(
+  nodes: TreeNode[],
+  config: SortConfig = DEFAULT_SORT_CONFIG
+): void {
   nodes.sort((a, b) => {
-    const aIsFolder =
-      a.children.length > 0 || a.type === 'folder' || a.type === 'both';
-    const bIsFolder =
-      b.children.length > 0 || b.type === 'folder' || b.type === 'both';
-    if (aIsFolder && !bIsFolder) return -1;
-    if (!aIsFolder && bIsFolder) return 1;
-    return a.name.localeCompare(b.name);
+    if (config.foldersFirst) {
+      const aIsFolder =
+        a.children.length > 0 || a.type === 'folder' || a.type === 'both';
+      const bIsFolder =
+        b.children.length > 0 || b.type === 'folder' || b.type === 'both';
+      if (aIsFolder && !bIsFolder) return -1;
+      if (!aIsFolder && bIsFolder) return 1;
+    }
+    const cmp = a.name.localeCompare(b.name);
+    return config.direction === 'desc' ? -cmp : cmp;
   });
-  nodes.forEach((n) => sortTree(n.children));
+  nodes.forEach((n) => sortTree(n.children, config));
 }

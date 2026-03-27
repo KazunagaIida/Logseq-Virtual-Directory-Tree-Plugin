@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
-import type { TreeNode, PageEntity } from '../types';
-import { buildTree } from '../tree';
+import type { TreeNode, PageEntity, SortConfig } from '../types';
+import { DEFAULT_SORT_CONFIG } from '../types';
+import { buildTree, sortTree } from '../tree';
 import { debounce } from '../utils/debounce';
 import { hasTreeChanged } from '../utils/treeDiff';
 
@@ -79,6 +80,13 @@ function expandAncestors(
   return expand(nodes);
 }
 
+function cloneTree(nodes: TreeNode[]): TreeNode[] {
+  return nodes.map((n) => ({
+    ...n,
+    children: cloneTree(n.children),
+  }));
+}
+
 // Check if a node exists in the tree
 function nodeExists(nodes: TreeNode[], fullPath: string): boolean {
   for (const node of nodes) {
@@ -97,9 +105,14 @@ export function useTree(options: UseTreeOptions = {}) {
   const { visible = true, isBusy } = options;
   const [tree, setTree] = useState<TreeNode[]>([]);
   const [activeNode, setActiveNode] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(() => {
+    const saved = logseq.settings?.sortConfig as SortConfig | undefined;
+    return saved ?? DEFAULT_SORT_CONFIG;
+  });
   const expandedRef = useRef<Set<string>>(new Set());
   const activeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const treeRef = useRef<TreeNode[]>([]);
+  const sortConfigRef = useRef<SortConfig>(sortConfig);
 
   const loadTree = useCallback(async () => {
     // Skip reload if busy
@@ -116,7 +129,7 @@ export function useTree(options: UseTreeOptions = {}) {
         return;
       }
 
-      const newTree = buildTree(pages);
+      const newTree = buildTree(pages, sortConfigRef.current);
 
       // Restore expanded state
       const saved = logseq.settings?.expandedFolders as string[] | undefined;
@@ -176,7 +189,7 @@ export function useTree(options: UseTreeOptions = {}) {
             setTree([]);
             return;
           }
-          const newTree = buildTree(pages);
+          const newTree = buildTree(pages, sortConfigRef.current);
           const saved = logseq.settings?.expandedFolders as string[] | undefined;
           if (saved && expandedRef.current.size === 0) {
             expandedRef.current = new Set(saved.map((s) => s.toLowerCase()));
@@ -284,5 +297,17 @@ export function useTree(options: UseTreeOptions = {}) {
     });
   }, []);
 
-  return { tree, activeNode, toggle, navigate, reload: loadTree, delayedReload, revealPage, expandAll, collapseAll };
+  const changeSortConfig = useCallback((newConfig: SortConfig) => {
+    setSortConfig(newConfig);
+    sortConfigRef.current = newConfig;
+    logseq.updateSettings({ sortConfig: newConfig });
+    setTree((prev) => {
+      const cloned = cloneTree(prev);
+      sortTree(cloned, newConfig);
+      treeRef.current = cloned;
+      return cloned;
+    });
+  }, []);
+
+  return { tree, activeNode, sortConfig, toggle, navigate, reload: loadTree, delayedReload, revealPage, expandAll, collapseAll, changeSortConfig };
 }

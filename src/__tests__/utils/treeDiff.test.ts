@@ -71,4 +71,10 @@ describe('hasTreeChanged', () => {
   it('returns false for two empty trees', () => {
     expect(hasTreeChanged([], [])).toBe(false);
   });
+
+  it('returns true when order changes (sort direction)', () => {
+    const old = [makeNode('apple', 'page'), makeNode('banana', 'page')];
+    const next = [makeNode('banana', 'page'), makeNode('apple', 'page')];
+    expect(hasTreeChanged(old, next)).toBe(true);
+  });
 });

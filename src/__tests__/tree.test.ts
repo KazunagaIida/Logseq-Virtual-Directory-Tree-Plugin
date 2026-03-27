@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildTree } from '../tree';
-import type { PageEntity } from '../types';
+import { buildTree, sortTree } from '../tree';
+import type { PageEntity, SortConfig, TreeNode } from '../types';
 
 function makePage(
   name: string,
@@ -202,5 +202,96 @@ describe('buildTree', () => {
     const ts = dev.children[1];
     expect(ts.name).toBe('typescript');
     expect(ts.fullPath).toBe('dev/typescript');
+  });
+});
+
+function makeNode(
+  name: string,
+  type: TreeNode['type'] = 'page',
+  children: TreeNode[] = []
+): TreeNode {
+  return {
+    name,
+    displayName: name,
+    fullPath: name,
+    type,
+    children,
+    isExpanded: false,
+  };
+}
+
+describe('sortTree with SortConfig', () => {
+  it('sorts descending when direction is desc', () => {
+    const nodes: TreeNode[] = [makeNode('apple'), makeNode('cherry'), makeNode('banana')];
+    sortTree(nodes, { key: 'name', direction: 'desc', foldersFirst: false });
+    expect(nodes.map((n) => n.name)).toEqual(['cherry', 'banana', 'apple']);
+  });
+
+  it('sorts ascending when direction is asc', () => {
+    const nodes: TreeNode[] = [makeNode('cherry'), makeNode('apple'), makeNode('banana')];
+    sortTree(nodes, { key: 'name', direction: 'asc', foldersFirst: false });
+    expect(nodes.map((n) => n.name)).toEqual(['apple', 'banana', 'cherry']);
+  });
+
+  it('does not group folders first when foldersFirst is false', () => {
+    const nodes: TreeNode[] = [
+      makeNode('zebra'),
+      makeNode('dev', 'folder', [makeNode('dev/react')]),
+      makeNode('apple'),
+    ];
+    sortTree(nodes, { key: 'name', direction: 'asc', foldersFirst: false });
+    expect(nodes.map((n) => n.name)).toEqual(['apple', 'dev', 'zebra']);
+  });
+
+  it('groups folders first when foldersFirst is true', () => {
+    const nodes: TreeNode[] = [
+      makeNode('zebra'),
+      makeNode('dev', 'folder', [makeNode('dev/react')]),
+      makeNode('apple'),
+    ];
+    sortTree(nodes, { key: 'name', direction: 'asc', foldersFirst: true });
+    expect(nodes.map((n) => n.name)).toEqual(['dev', 'apple', 'zebra']);
+  });
+
+  it('sorts folders first + descending', () => {
+    const nodes: TreeNode[] = [
+      makeNode('apple'),
+      makeNode('cooking', 'folder', [makeNode('cooking/sous-vide')]),
+      makeNode('dev', 'folder', [makeNode('dev/react')]),
+      makeNode('banana'),
+    ];
+    sortTree(nodes, { key: 'name', direction: 'desc', foldersFirst: true });
+    // Folders first (desc: dev, cooking), then pages (desc: banana, apple)
+    expect(nodes.map((n) => n.name)).toEqual(['dev', 'cooking', 'banana', 'apple']);
+  });
+
+  it('uses default config (asc + foldersFirst) when no config provided', () => {
+    const nodes: TreeNode[] = [
+      makeNode('zebra'),
+      makeNode('dev', 'folder', [makeNode('dev/react')]),
+      makeNode('apple'),
+    ];
+    sortTree(nodes);
+    expect(nodes.map((n) => n.name)).toEqual(['dev', 'apple', 'zebra']);
+  });
+
+  it('sorts recursively in children', () => {
+    const nodes: TreeNode[] = [
+      makeNode('dev', 'folder', [
+        makeNode('typescript'),
+        makeNode('react'),
+        makeNode('angular'),
+      ]),
+    ];
+    sortTree(nodes, { key: 'name', direction: 'desc', foldersFirst: false });
+    expect(nodes[0].children.map((n) => n.name)).toEqual(['typescript', 'react', 'angular']);
+  });
+
+  it('buildTree accepts sortConfig parameter', () => {
+    const tree = buildTree(
+      [makePage('zebra'), makePage('dev/react'), makePage('apple')],
+      { key: 'name', direction: 'desc', foldersFirst: false }
+    );
+    expect(tree.map((n) => n.name)).toEqual(['zebra', 'dev', 'apple']);
   });
 });

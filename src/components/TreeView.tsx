@@ -1,5 +1,6 @@
-import type { TreeNode } from '../types';
+import type { TreeNode, SortConfig } from '../types';
 import { TreeNodeComponent } from './TreeNode';
+import { SortMenu } from './SortMenu';
 
 interface TreeViewProps {
   tree: TreeNode[];
@@ -9,6 +10,11 @@ interface TreeViewProps {
   onReveal?: () => void;
   onClose?: () => void;
   onCreatePage?: () => void;
+  sortConfig?: SortConfig;
+  onSortChange?: (config: SortConfig) => void;
+  showSortMenu?: boolean;
+  onToggleSortMenu?: () => void;
+  onCloseSortMenu?: () => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
   onSelect?: (fullPath: string, ctrlKey: boolean, shiftKey: boolean) => void;
@@ -25,6 +31,7 @@ interface TreeViewProps {
   dropTarget?: string | null;
 }
 
+const ICON_SORT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="11" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="16 14 19 17 22 14"/><line x1="19" y1="7" x2="19" y2="17"/></svg>`;
 const ICON_REVEAL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>`;
 const ICON_CREATE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
 const ICON_EXPAND = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 8 12 13 17 8"/><polyline points="7 14 12 19 17 14"/></svg>`;
@@ -42,6 +49,11 @@ export function TreeView({
   onCollapseAll,
   onSelect,
   isNodeSelected,
+  sortConfig,
+  onSortChange,
+  showSortMenu,
+  onToggleSortMenu,
+  onCloseSortMenu,
   renamingPath,
   onContextMenu,
   onRenameConfirm,
@@ -74,6 +86,11 @@ export function TreeView({
             <span dangerouslySetInnerHTML={{ __html: ICON_CREATE }} />
           </button>
         )}
+        {onToggleSortMenu && (
+          <button class="tree-panel-btn" onClick={onToggleSortMenu} title="Sort" data-testid="sort-btn">
+            <span dangerouslySetInnerHTML={{ __html: ICON_SORT }} />
+          </button>
+        )}
         {onExpandAll && (
           <button class="tree-panel-btn" onClick={onExpandAll} title="Expand all" data-testid="expand-all-btn">
             <span dangerouslySetInnerHTML={{ __html: ICON_EXPAND }} />
@@ -95,6 +112,13 @@ export function TreeView({
           </button>
         )}
       </div>
+      {showSortMenu && sortConfig && onSortChange && onCloseSortMenu && (
+        <SortMenu
+          config={sortConfig}
+          onChange={onSortChange}
+          onClose={onCloseSortMenu}
+        />
+      )}
       <div
         class={`tree-container${isRootDropTarget ? ' tree-root-drop-target' : ''}`}
         onDragOver={handleRootDragOver}

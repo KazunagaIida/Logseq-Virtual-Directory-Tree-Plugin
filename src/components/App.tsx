@@ -21,11 +21,13 @@ export function App() {
 
   const dragActiveRef = useRef(false);
 
-  const isBusy = useCallback(() => {
-    return renamingPath !== null || deleteConfirm !== null || showCreateDialog || menu.visible || dragActiveRef.current;
-  }, [renamingPath, deleteConfirm, showCreateDialog, menu.visible]);
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const { tree, activeNode, toggle, navigate, reload, delayedReload, revealPage, expandAll, collapseAll } = useTree({ isBusy });
+  const isBusy = useCallback(() => {
+    return renamingPath !== null || deleteConfirm !== null || showCreateDialog || menu.visible || showSortMenu || dragActiveRef.current;
+  }, [renamingPath, deleteConfirm, showCreateDialog, menu.visible, showSortMenu]);
+
+  const { tree, activeNode, sortConfig, toggle, navigate, reload, delayedReload, revealPage, expandAll, collapseAll, changeSortConfig } = useTree({ isBusy });
   const { selectedPaths, isSelected, toggleSelect, clearSelection } = useSelection(tree);
   const {
     state,
@@ -50,6 +52,14 @@ export function App() {
   }, [onDragEndInner]);
 
   const [createPrefix, setCreatePrefix] = useState('');
+
+  const handleToggleSortMenu = useCallback(() => {
+    setShowSortMenu((prev) => !prev);
+  }, []);
+
+  const handleCloseSortMenu = useCallback(() => {
+    setShowSortMenu(false);
+  }, []);
 
   const handleClose = useCallback(() => {
     clearSelection();
@@ -220,7 +230,9 @@ export function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      if (showCreateDialog) {
+      if (showSortMenu) {
+        handleCloseSortMenu();
+      } else if (showCreateDialog) {
         handleCreateCancel();
       } else if (deleteConfirm) {
         handleDeleteCancel();
@@ -232,7 +244,7 @@ export function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showCreateDialog, deleteConfirm, state.confirmDialog.visible, state.resultDialog.visible, handleCreateCancel, handleDeleteCancel, cancelMove, closeResultDialog]);
+  }, [showSortMenu, showCreateDialog, deleteConfirm, state.confirmDialog.visible, state.resultDialog.visible, handleCloseSortMenu, handleCreateCancel, handleDeleteCancel, cancelMove, closeResultDialog]);
 
   return (
     <div class="tree-panel">
@@ -244,6 +256,11 @@ export function App() {
           onReveal={handleReveal}
           onClose={handleClose}
           onCreatePage={handleCreatePage}
+          sortConfig={sortConfig}
+          onSortChange={changeSortConfig}
+          showSortMenu={showSortMenu}
+          onToggleSortMenu={handleToggleSortMenu}
+          onCloseSortMenu={handleCloseSortMenu}
           onExpandAll={expandAll}
           onCollapseAll={collapseAll}
           onSelect={toggleSelect}

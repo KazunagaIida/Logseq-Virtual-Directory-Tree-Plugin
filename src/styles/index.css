@@ -425,6 +425,56 @@ html, body, #app {
   background: rgba(238, 85, 85, 0.1);
 }
 
+/* ===== Sort Menu ===== */
+.sort-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001;
+}
+
+.sort-menu {
+  position: absolute;
+  right: 8px;
+  top: 42px;
+  min-width: 160px;
+  background: var(--vdt-bg);
+  border: 1px solid var(--vdt-border);
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 4px 16px var(--vdt-shadow);
+  z-index: 1002;
+}
+
+.sort-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  color: var(--vdt-text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sort-menu-item:hover {
+  background: var(--vdt-bg-secondary);
+}
+
+.sort-menu-item-active {
+  font-weight: 600;
+}
+
+.sort-menu-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--vdt-border);
+}
+
 /* ===== Inline Rename ===== */
 .inline-rename-input {
   flex: 1;

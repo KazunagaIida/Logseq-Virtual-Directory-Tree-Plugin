@@ -20,6 +20,21 @@ export interface TreeNode {
   isExpanded: boolean;
 }
 
+export type SortKey = 'name';
+export type SortDirection = 'asc' | 'desc';
+
+export interface SortConfig {
+  key: SortKey;
+  direction: SortDirection;
+  foldersFirst: boolean;
+}
+
+export const DEFAULT_SORT_CONFIG: SortConfig = {
+  key: 'name',
+  direction: 'asc',
+  foldersFirst: true,
+};
+
 export interface PageEntity {
   id: number;
   uuid: string;
