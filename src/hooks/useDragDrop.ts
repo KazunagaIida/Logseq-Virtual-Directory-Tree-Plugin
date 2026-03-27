@@ -35,7 +35,8 @@ export function useDragDrop(
   tree: TreeNode[],
   onComplete: () => void,
   selectedPaths?: Set<string>,
-  clearSelection?: () => void
+  clearSelection?: () => void,
+  onDelayedReload?: () => void
 ) {
   const dragSourcesRef = useRef<TreeNode[]>([]);
   const [state, setState] = useState<DragDropState>({
@@ -198,7 +199,8 @@ export function useDragDrop(
     }
 
     onComplete();
-  }, [state.confirmDialog, onComplete]);
+    onDelayedReload?.();
+  }, [state.confirmDialog, onComplete, onDelayedReload]);
 
   const cancelMove = useCallback(() => {
     setState((prev) => ({

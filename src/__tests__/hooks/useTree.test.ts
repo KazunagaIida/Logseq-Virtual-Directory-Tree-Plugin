@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/preact';
 import { useTree } from '../../hooks/useTree';
 import type { PageEntity } from '../../types';
+import type { UseTreeOptions } from '../../hooks/useTree';
 
 function makePage(name: string): PageEntity {
   return {
@@ -40,7 +41,7 @@ describe('useTree - revealPage', () => {
 
     // Wait for initial loadTree
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     // All folders should start collapsed
@@ -65,7 +66,7 @@ describe('useTree - revealPage', () => {
     const { result } = renderHook(() => useTree());
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     act(() => {
@@ -86,7 +87,7 @@ describe('useTree - revealPage', () => {
     const { result } = renderHook(() => useTree());
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     const treeBefore = result.current.tree;
@@ -104,7 +105,7 @@ describe('useTree - revealPage', () => {
     const { result } = renderHook(() => useTree());
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     act(() => {
@@ -134,7 +135,7 @@ describe('useTree - expandAll / collapseAll', () => {
     const { result } = renderHook(() => useTree());
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     // All should start collapsed
@@ -157,7 +158,7 @@ describe('useTree - expandAll / collapseAll', () => {
     const { result } = renderHook(() => useTree());
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     // First expand all
@@ -174,5 +175,142 @@ describe('useTree - expandAll / collapseAll', () => {
     expect(dev?.isExpanded).toBe(false);
     const cooking = result.current.tree.find((n) => n.name === 'cooking');
     expect(cooking?.isExpanded).toBe(false);
+  });
+});
+
+describe('useTree - smart reload', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
+      testPages
+    );
+    logseq.settings = {};
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('skips setTree when tree content has not changed', async () => {
+    const { result } = renderHook(() => useTree());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    const treeBefore = result.current.tree;
+    expect(treeBefore.length).toBeGreaterThan(0);
+
+    // Reload with same data
+    await act(async () => {
+      await result.current.reload();
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    // Tree reference should be the same (setTree was skipped)
+    expect(result.current.tree).toBe(treeBefore);
+  });
+
+  it('updates tree when content changes', async () => {
+    const { result } = renderHook(() => useTree());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    const treeBefore = result.current.tree;
+
+    // Change the data
+    const newPages = [...testPages, makePage('new-page')];
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
+      newPages
+    );
+
+    await act(async () => {
+      await result.current.reload();
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    // Tree reference should be different (setTree was called)
+    expect(result.current.tree).not.toBe(treeBefore);
+    const newNode = result.current.tree.find((n) => n.name === 'new-page');
+    expect(newNode).toBeDefined();
+  });
+
+  it('does not load when visible is false', async () => {
+    const { result } = renderHook(() => useTree({ visible: false }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    // Tree should remain empty since visible=false prevents initial load
+    expect(result.current.tree).toEqual([]);
+    expect(logseq.Editor.getAllPages).not.toHaveBeenCalled();
+  });
+
+  it('polls while visible and stops when not', async () => {
+    const props = { visible: true };
+    const { result, rerender } = renderHook(
+      (p: UseTreeOptions) => useTree(p),
+      { initialProps: props }
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    const callCount = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    // Advance 5 seconds to trigger one poll
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    const callCountAfterPoll = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+    expect(callCountAfterPoll).toBeGreaterThan(callCount);
+
+    // Switch to not visible
+    rerender({ visible: false });
+
+    const callCountBeforeHidden = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    // Advance 10 seconds - no polling should happen
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10000);
+    });
+
+    const callCountAfterHidden = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+    expect(callCountAfterHidden).toBe(callCountBeforeHidden);
+  });
+
+  it('skips reload when isBusy returns true', async () => {
+    let busy = false;
+    const isBusy = () => busy;
+
+    const { result } = renderHook(() => useTree({ isBusy }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    const treeBefore = result.current.tree;
+    expect(treeBefore.length).toBeGreaterThan(0);
+
+    // Set busy, change data, and try to reload
+    busy = true;
+    const newPages = [...testPages, makePage('new-page')];
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
+      newPages
+    );
+
+    await act(async () => {
+      await result.current.reload();
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    // Tree should not have changed since isBusy is true
+    expect(result.current.tree).toBe(treeBefore);
   });
 });

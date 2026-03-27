@@ -1,5 +1,5 @@
 import '../styles/index.css';
-import { useState, useCallback, useEffect } from 'preact/hooks';
+import { useState, useCallback, useEffect, useRef } from 'preact/hooks';
 import type { TreeNode } from '../types';
 import { useTree } from '../hooks/useTree';
 import { useSelection } from '../hooks/useSelection';
@@ -13,25 +13,43 @@ import { CreatePageDialog } from './CreatePageDialog';
 import { ContextMenu } from './ContextMenu';
 
 export function App() {
-  const { tree, activeNode, toggle, navigate, reload, revealPage, expandAll, collapseAll } = useTree();
+  const [renamingPath, setRenamingPath] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<TreeNode | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const { menu, openMenu, closeMenu } = useContextMenu();
+
+  const dragActiveRef = useRef(false);
+
+  const isBusy = useCallback(() => {
+    return renamingPath !== null || deleteConfirm !== null || showCreateDialog || menu.visible || dragActiveRef.current;
+  }, [renamingPath, deleteConfirm, showCreateDialog, menu.visible]);
+
+  const { tree, activeNode, toggle, navigate, reload, delayedReload, revealPage, expandAll, collapseAll } = useTree({ isBusy });
   const { selectedPaths, isSelected, toggleSelect, clearSelection } = useSelection(tree);
   const {
     state,
-    onDragStart,
+    onDragStart: onDragStartInner,
     onDragOver,
     onDragLeave,
-    onDragEnd,
+    onDragEnd: onDragEndInner,
     onDrop,
     confirmMove,
     cancelMove,
     closeResultDialog,
-  } = useDragDrop(tree, reload, selectedPaths, clearSelection);
-  const { menu, openMenu, closeMenu } = useContextMenu();
+  } = useDragDrop(tree, reload, selectedPaths, clearSelection, delayedReload);
 
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const onDragStart = useCallback((node: TreeNode, e: DragEvent) => {
+    dragActiveRef.current = true;
+    onDragStartInner(node, e);
+  }, [onDragStartInner]);
+
+  const onDragEnd = useCallback(() => {
+    dragActiveRef.current = false;
+    onDragEndInner();
+  }, [onDragEndInner]);
+
   const [createPrefix, setCreatePrefix] = useState('');
-  const [renamingPath, setRenamingPath] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<TreeNode | null>(null);
 
   const handleClose = useCallback(() => {
     clearSelection();
@@ -147,8 +165,9 @@ export function App() {
         }
       }
       reload();
+      delayedReload();
     },
-    [reload]
+    [reload, delayedReload]
   );
 
   const handleRenameCancel = useCallback(() => {
@@ -173,7 +192,8 @@ export function App() {
     setDeleteConfirm(null);
     shrinkIframeToPanel();
     reload();
-  }, [deleteConfirm, reload]);
+    delayedReload();
+  }, [deleteConfirm, reload, delayedReload]);
 
   const handleDeleteCancel = useCallback(() => {
     setDeleteConfirm(null);

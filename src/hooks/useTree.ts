@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import type { TreeNode, PageEntity } from '../types';
 import { buildTree } from '../tree';
 import { debounce } from '../utils/debounce';
+import { hasTreeChanged } from '../utils/treeDiff';
+
+const POLL_INTERVAL = 5000;
 
 function applyExpandedState(
   nodes: TreeNode[],
@@ -85,18 +88,31 @@ function nodeExists(nodes: TreeNode[], fullPath: string): boolean {
   return false;
 }
 
-export function useTree() {
+export interface UseTreeOptions {
+  visible?: boolean;
+  isBusy?: () => boolean;
+}
+
+export function useTree(options: UseTreeOptions = {}) {
+  const { visible = true, isBusy } = options;
   const [tree, setTree] = useState<TreeNode[]>([]);
   const [activeNode, setActiveNode] = useState<string | null>(null);
   const expandedRef = useRef<Set<string>>(new Set());
   const activeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const treeRef = useRef<TreeNode[]>([]);
 
   const loadTree = useCallback(async () => {
+    // Skip reload if busy
+    if (isBusy && isBusy()) return;
+
     try {
       const pages =
         (await logseq.Editor.getAllPages()) as PageEntity[] | null;
       if (!pages) {
-        setTree([]);
+        if (treeRef.current.length > 0) {
+          treeRef.current = [];
+          setTree([]);
+        }
         return;
       }
 
@@ -109,13 +125,20 @@ export function useTree() {
       }
       applyExpandedState(newTree, expandedRef.current);
 
+      // Only update if tree content actually changed
+      if (!hasTreeChanged(treeRef.current, newTree)) return;
+
+      treeRef.current = newTree;
       setTree(newTree);
     } catch (err) {
       console.error('Failed to load tree:', err);
     }
-  }, []);
+  }, [isBusy]);
 
+  // Initial load + DB.onChanged listener
   useEffect(() => {
+    if (!visible) return;
+
     loadTree();
 
     const debouncedReload = debounce(() => {
@@ -127,7 +150,47 @@ export function useTree() {
     return () => {
       if (typeof off === 'function') off();
     };
-  }, [loadTree]);
+  }, [loadTree, visible]);
+
+  // Polling while visible
+  useEffect(() => {
+    if (!visible) return;
+
+    const id = setInterval(() => {
+      loadTree();
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(id);
+  }, [visible, loadTree]);
+
+  // Delayed reload for post-operation retry
+  const delayedReload = useCallback(() => {
+    setTimeout(() => {
+      // Force reload regardless of busy state for post-operation retry
+      (async () => {
+        try {
+          const pages =
+            (await logseq.Editor.getAllPages()) as PageEntity[] | null;
+          if (!pages) {
+            treeRef.current = [];
+            setTree([]);
+            return;
+          }
+          const newTree = buildTree(pages);
+          const saved = logseq.settings?.expandedFolders as string[] | undefined;
+          if (saved && expandedRef.current.size === 0) {
+            expandedRef.current = new Set(saved.map((s) => s.toLowerCase()));
+          }
+          applyExpandedState(newTree, expandedRef.current);
+          if (!hasTreeChanged(treeRef.current, newTree)) return;
+          treeRef.current = newTree;
+          setTree(newTree);
+        } catch (err) {
+          console.error('Failed to load tree (delayed):', err);
+        }
+      })();
+    }, 500);
+  }, []);
 
   const toggle = useCallback(
     (fullPath: string) => {
@@ -146,6 +209,7 @@ export function useTree() {
         const paths = collectExpandedPaths(updated);
         logseq.updateSettings({ expandedFolders: paths });
 
+        treeRef.current = updated;
         return updated;
       });
     },
@@ -169,6 +233,7 @@ export function useTree() {
       const paths = collectExpandedPaths(updated);
       logseq.updateSettings({ expandedFolders: paths });
 
+      treeRef.current = updated;
       return updated;
     });
 
@@ -196,6 +261,7 @@ export function useTree() {
       }
       const updated = setAll(prev);
       logseq.updateSettings({ expandedFolders: collectExpandedPaths(updated) });
+      treeRef.current = updated;
       return updated;
     });
   }, []);
@@ -213,9 +279,10 @@ export function useTree() {
       expandedRef.current.clear();
       const updated = setAll(prev);
       logseq.updateSettings({ expandedFolders: [] });
+      treeRef.current = updated;
       return updated;
     });
   }, []);
 
-  return { tree, activeNode, toggle, navigate, reload: loadTree, revealPage, expandAll, collapseAll };
+  return { tree, activeNode, toggle, navigate, reload: loadTree, delayedReload, revealPage, expandAll, collapseAll };
 }
