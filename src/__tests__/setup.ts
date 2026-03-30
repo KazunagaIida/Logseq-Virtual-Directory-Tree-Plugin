@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 // Global mock for Logseq Plugin API
 const mockLogseq = {
-  ready: (fn: Function) => Promise.resolve(fn()),
+  ready: (fn: () => unknown) => Promise.resolve(fn()),
   Editor: {
     getAllPages: vi.fn().mockResolvedValue([]),
     renamePage: vi.fn().mockResolvedValue(undefined),
@@ -26,5 +26,5 @@ const mockLogseq = {
   settings: {},
 };
 
-// @ts-ignore
+// @ts-expect-error logseq global is not typed on globalThis
 globalThis.logseq = mockLogseq;

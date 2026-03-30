@@ -46,7 +46,6 @@ export function TreeNodeComponent({
   isNodeSelected,
 }: TreeNodeProps) {
   const rowRef = useRef<HTMLDivElement>(null);
-  const hasChildren = node.children.length > 0;
   const isFolder = node.type === 'folder' || node.type === 'both';
   const isDropTarget = dropTarget === node.fullPath;
   const isActive = activeNode?.toLowerCase() === node.fullPath.toLowerCase();
@@ -134,16 +133,16 @@ export function TreeNodeComponent({
   };
 
   const labelClass =
-    node.type === 'page' || node.type === 'both'
-      ? 'tree-node-label clickable'
-      : 'tree-node-label';
+    node.type === 'page' || node.type === 'both' ? 'tree-node-label clickable' : 'tree-node-label';
 
   const rowClass = [
     'tree-node',
     isDropTarget && 'tree-node-drop-target',
     isActive && 'tree-node-active',
     isSelected && 'tree-node-selected',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div>

@@ -7,7 +7,7 @@ function makeNode(
   fullPath: string,
   type: TreeNode['type'],
   children: TreeNode[] = [],
-  isExpanded = true
+  isExpanded = true,
 ): TreeNode {
   const parts = fullPath.split('/');
   return {
@@ -28,13 +28,8 @@ function makeNode(
 //   cooking/sv   (page)
 // memo           (page)
 const tree: TreeNode[] = [
-  makeNode('dev', 'folder', [
-    makeNode('dev/react', 'page'),
-    makeNode('dev/ts', 'page'),
-  ]),
-  makeNode('cooking', 'folder', [
-    makeNode('cooking/sv', 'page'),
-  ]),
+  makeNode('dev', 'folder', [makeNode('dev/react', 'page'), makeNode('dev/ts', 'page')]),
+  makeNode('cooking', 'folder', [makeNode('cooking/sv', 'page')]),
   makeNode('memo', 'page'),
 ];
 

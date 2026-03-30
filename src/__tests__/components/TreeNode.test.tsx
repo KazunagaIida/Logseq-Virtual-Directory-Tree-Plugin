@@ -3,9 +3,7 @@ import { render, fireEvent } from '@testing-library/preact';
 import { TreeNodeComponent } from '../../components/TreeNode';
 import type { TreeNode } from '../../types';
 
-function makeNode(
-  overrides: Partial<TreeNode> & { fullPath: string }
-): TreeNode {
+function makeNode(overrides: Partial<TreeNode> & { fullPath: string }): TreeNode {
   const parts = overrides.fullPath.split('/');
   return {
     name: parts[parts.length - 1],
@@ -28,7 +26,7 @@ describe('TreeNodeComponent', () => {
   it('renders a page node with text and no expand icon', () => {
     const node = makeNode({ fullPath: 'memo', type: 'page' });
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     const label = getByTestId('node-label');
@@ -49,7 +47,7 @@ describe('TreeNodeComponent', () => {
     });
 
     const { getByTestId, queryByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     const icon = getByTestId('node-icon');
@@ -67,7 +65,7 @@ describe('TreeNodeComponent', () => {
     });
 
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     const icon = getByTestId('node-icon');
@@ -86,7 +84,7 @@ describe('TreeNodeComponent', () => {
     });
 
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={1} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={1} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     const row = getByTestId('tree-node-dev/react');
@@ -104,7 +102,7 @@ describe('TreeNodeComponent', () => {
     });
 
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     fireEvent.click(getByTestId('node-icon'));
@@ -122,7 +120,7 @@ describe('TreeNodeComponent', () => {
     });
 
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     const row = getByTestId('tree-node-dev/react');
@@ -135,11 +133,20 @@ describe('TreeNodeComponent', () => {
     const node = makeNode({ fullPath: 'memo', type: 'page' });
     const onDrop = vi.fn();
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} onDrop={onDrop} />
+      <TreeNodeComponent
+        node={node}
+        depth={0}
+        onToggle={onToggle}
+        onNavigate={onNavigate}
+        onDrop={onDrop}
+      />,
     );
 
     const row = getByTestId('tree-node-memo');
-    const dropEvent = new Event('drop', { bubbles: true }) as any;
+    const dropEvent = new Event('drop', { bubbles: true }) as unknown as DragEvent & {
+      stopPropagation: ReturnType<typeof vi.fn>;
+      dataTransfer: { dropEffect: string };
+    };
     dropEvent.stopPropagation = vi.fn();
     dropEvent.dataTransfer = { dropEffect: 'none' };
     row.dispatchEvent(dropEvent);
@@ -150,14 +157,28 @@ describe('TreeNodeComponent', () => {
 
   it('calls stopPropagation on drop event for folder nodes', () => {
     const child = makeNode({ fullPath: 'dev/hooks', type: 'page' });
-    const node = makeNode({ fullPath: 'dev', type: 'folder', children: [child], isExpanded: false });
+    const node = makeNode({
+      fullPath: 'dev',
+      type: 'folder',
+      children: [child],
+      isExpanded: false,
+    });
     const onDrop = vi.fn();
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} onDrop={onDrop} />
+      <TreeNodeComponent
+        node={node}
+        depth={0}
+        onToggle={onToggle}
+        onNavigate={onNavigate}
+        onDrop={onDrop}
+      />,
     );
 
     const row = getByTestId('tree-node-dev');
-    const dropEvent = new Event('drop', { bubbles: true }) as any;
+    const dropEvent = new Event('drop', { bubbles: true }) as unknown as DragEvent & {
+      stopPropagation: ReturnType<typeof vi.fn>;
+      dataTransfer: { dropEffect: string };
+    };
     dropEvent.stopPropagation = vi.fn();
     dropEvent.dataTransfer = { dropEffect: 'none' };
     row.dispatchEvent(dropEvent);
@@ -169,7 +190,7 @@ describe('TreeNodeComponent', () => {
     const node = makeNode({ fullPath: 'deep/node', type: 'page' });
 
     const { getByTestId } = render(
-      <TreeNodeComponent node={node} depth={3} onToggle={onToggle} onNavigate={onNavigate} />
+      <TreeNodeComponent node={node} depth={3} onToggle={onToggle} onNavigate={onNavigate} />,
     );
 
     const row = getByTestId('tree-node-deep/node');

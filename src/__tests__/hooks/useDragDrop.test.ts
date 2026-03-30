@@ -3,11 +3,7 @@ import { renderHook, act } from '@testing-library/preact';
 import { useDragDrop } from '../../hooks/useDragDrop';
 import type { TreeNode } from '../../types';
 
-function makeNode(
-  fullPath: string,
-  type: TreeNode['type'],
-  children: TreeNode[] = []
-): TreeNode {
+function makeNode(fullPath: string, type: TreeNode['type'], children: TreeNode[] = []): TreeNode {
   const parts = fullPath.split('/');
   return {
     name: parts[parts.length - 1],
@@ -38,16 +34,10 @@ describe('useDragDrop', () => {
 
   const tree: TreeNode[] = [
     makeNode('dev', 'folder', [
-      makeNode('dev/react', 'both', [
-        makeNode('dev/react/hooks', 'page'),
-      ]),
-      makeNode('dev/typescript', 'folder', [
-        makeNode('dev/typescript/generics', 'page'),
-      ]),
+      makeNode('dev/react', 'both', [makeNode('dev/react/hooks', 'page')]),
+      makeNode('dev/typescript', 'folder', [makeNode('dev/typescript/generics', 'page')]),
     ]),
-    makeNode('cooking', 'folder', [
-      makeNode('cooking/sous-vide', 'page'),
-    ]),
+    makeNode('cooking', 'folder', [makeNode('cooking/sous-vide', 'page')]),
     makeNode('memo', 'page'),
   ];
 
@@ -56,7 +46,9 @@ describe('useDragDrop', () => {
     vi.restoreAllMocks();
     (logseq.Editor.getPage as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
-    (logseq.App.invokeExternalCommand as any) = vi.fn().mockResolvedValue(undefined);
+    (logseq.App.invokeExternalCommand as unknown as ReturnType<typeof vi.fn>) = vi
+      .fn()
+      .mockResolvedValue(undefined);
   });
 
   it('rejects dropping onto itself', () => {
@@ -160,10 +152,7 @@ describe('useDragDrop', () => {
       await result.current.confirmMove();
     });
 
-    expect(logseq.Editor.renamePage).toHaveBeenCalledWith(
-      'dev/react/hooks',
-      'cooking/hooks'
-    );
+    expect(logseq.Editor.renamePage).toHaveBeenCalledWith('dev/react/hooks', 'cooking/hooks');
     expect(onComplete).toHaveBeenCalled();
   });
 
@@ -207,9 +196,7 @@ describe('useDragDrop', () => {
     it('drags all selected nodes when dragging a selected node', () => {
       const selected = new Set(['dev/react/hooks', 'dev/typescript/generics']);
       const clearSel = vi.fn();
-      const { result } = renderHook(() =>
-        useDragDrop(tree, onComplete, selected, clearSel)
-      );
+      const { result } = renderHook(() => useDragDrop(tree, onComplete, selected, clearSel));
       const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
 
       act(() => {
@@ -232,9 +219,7 @@ describe('useDragDrop', () => {
     it('drags only the single node when dragging an unselected node', () => {
       const selected = new Set(['dev/react/hooks', 'dev/typescript/generics']);
       const clearSel = vi.fn();
-      const { result } = renderHook(() =>
-        useDragDrop(tree, onComplete, selected, clearSel)
-      );
+      const { result } = renderHook(() => useDragDrop(tree, onComplete, selected, clearSel));
       const unselectedNode = tree[2]; // memo (not selected)
 
       act(() => {
@@ -255,9 +240,7 @@ describe('useDragDrop', () => {
       // Select dev (parent) and memo (unrelated)
       const selected = new Set(['dev', 'memo']);
       const clearSel = vi.fn();
-      const { result } = renderHook(() =>
-        useDragDrop(tree, onComplete, selected, clearSel)
-      );
+      const { result } = renderHook(() => useDragDrop(tree, onComplete, selected, clearSel));
 
       act(() => {
         result.current.onDragStart(tree[0], makeDragEvent()); // dev
@@ -435,9 +418,7 @@ describe('useDragDrop', () => {
     it('multi-select drop onto a leaf nests all sources under it', () => {
       const selected = new Set(['dev/react/hooks', 'memo']);
       const clearSel = vi.fn();
-      const { result } = renderHook(() =>
-        useDragDrop(tree, onComplete, selected, clearSel)
-      );
+      const { result } = renderHook(() => useDragDrop(tree, onComplete, selected, clearSel));
       const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
 
       act(() => {

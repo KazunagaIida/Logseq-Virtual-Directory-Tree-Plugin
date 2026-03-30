@@ -24,10 +24,29 @@ export function App() {
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   const isBusy = useCallback(() => {
-    return renamingPath !== null || deleteConfirm !== null || showCreateDialog || menu.visible || showSortMenu || dragActiveRef.current;
+    return (
+      renamingPath !== null ||
+      deleteConfirm !== null ||
+      showCreateDialog ||
+      menu.visible ||
+      showSortMenu ||
+      dragActiveRef.current
+    );
   }, [renamingPath, deleteConfirm, showCreateDialog, menu.visible, showSortMenu]);
 
-  const { tree, activeNode, sortConfig, toggle, navigate, reload, delayedReload, revealPage, expandAll, collapseAll, changeSortConfig } = useTree({ isBusy });
+  const {
+    tree,
+    activeNode,
+    sortConfig,
+    toggle,
+    navigate,
+    reload,
+    delayedReload,
+    revealPage,
+    expandAll,
+    collapseAll,
+    changeSortConfig,
+  } = useTree({ isBusy });
   const { selectedPaths, isSelected, toggleSelect, clearSelection } = useSelection(tree);
   const {
     state,
@@ -41,10 +60,13 @@ export function App() {
     closeResultDialog,
   } = useDragDrop(tree, reload, selectedPaths, clearSelection, delayedReload);
 
-  const onDragStart = useCallback((node: TreeNode, e: DragEvent) => {
-    dragActiveRef.current = true;
-    onDragStartInner(node, e);
-  }, [onDragStartInner]);
+  const onDragStart = useCallback(
+    (node: TreeNode, e: DragEvent) => {
+      dragActiveRef.current = true;
+      onDragStartInner(node, e);
+    },
+    [onDragStartInner],
+  );
 
   const onDragEnd = useCallback(() => {
     dragActiveRef.current = false;
@@ -70,8 +92,8 @@ export function App() {
   const handleReveal = useCallback(async () => {
     try {
       const page = await logseq.Editor.getCurrentPage();
-      if (page && (page as any).originalName) {
-        const name = ((page as any).originalName as string)
+      if (page && (page as Record<string, unknown>).originalName) {
+        const name = ((page as Record<string, unknown>).originalName as string)
           .split('/')
           .map((p: string) => p.trim())
           .join('/');
@@ -129,7 +151,7 @@ export function App() {
     (node: TreeNode, x: number, y: number) => {
       openMenu(node, x, y);
     },
-    [openMenu]
+    [openMenu],
   );
 
   const handleCtxRename = useCallback(() => {
@@ -176,10 +198,7 @@ export function App() {
         await executeRenames(unique);
       } else {
         try {
-          await logseq.Editor.renamePage(
-            node.originalName ?? node.fullPath,
-            newPath
-          );
+          await logseq.Editor.renamePage(node.originalName ?? node.fullPath, newPath);
         } catch (err) {
           console.error('Failed to rename:', err);
         }
@@ -187,7 +206,7 @@ export function App() {
       reload();
       delayedReload();
     },
-    [reload, delayedReload]
+    [reload, delayedReload],
   );
 
   const handleRenameCancel = useCallback(() => {
@@ -254,94 +273,102 @@ export function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showSortMenu, showCreateDialog, deleteConfirm, state.confirmDialog.visible, state.resultDialog.visible, handleCloseSortMenu, handleCreateCancel, handleDeleteCancel, cancelMove, closeResultDialog]);
+  }, [
+    showSortMenu,
+    showCreateDialog,
+    deleteConfirm,
+    state.confirmDialog.visible,
+    state.resultDialog.visible,
+    handleCloseSortMenu,
+    handleCreateCancel,
+    handleDeleteCancel,
+    cancelMove,
+    closeResultDialog,
+  ]);
 
   return (
     <div class="tree-panel">
-        <TreeView
-          tree={tree}
-          activeNode={activeNode}
-          onToggle={toggle}
-          onNavigate={navigate}
-          onReveal={handleReveal}
-          onClose={handleClose}
-          onCreatePage={handleCreatePage}
-          sortConfig={sortConfig}
-          onSortChange={changeSortConfig}
-          showSortMenu={showSortMenu}
-          onToggleSortMenu={handleToggleSortMenu}
-          onCloseSortMenu={handleCloseSortMenu}
-          onExpandAll={expandAll}
-          onCollapseAll={collapseAll}
-          onSelect={toggleSelect}
-          isNodeSelected={isSelected}
-          renamingPath={renamingPath}
-          onContextMenu={handleContextMenu}
-          onRenameConfirm={handleRenameConfirm}
-          onRenameCancel={handleRenameCancel}
-          onDragStart={onDragStart}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDragEnd={onDragEnd}
-          onDrop={onDrop}
-          dropTarget={state.dropTarget}
+      <TreeView
+        tree={tree}
+        activeNode={activeNode}
+        onToggle={toggle}
+        onNavigate={navigate}
+        onReveal={handleReveal}
+        onClose={handleClose}
+        onCreatePage={handleCreatePage}
+        sortConfig={sortConfig}
+        onSortChange={changeSortConfig}
+        showSortMenu={showSortMenu}
+        onToggleSortMenu={handleToggleSortMenu}
+        onCloseSortMenu={handleCloseSortMenu}
+        onExpandAll={expandAll}
+        onCollapseAll={collapseAll}
+        onSelect={toggleSelect}
+        isNodeSelected={isSelected}
+        renamingPath={renamingPath}
+        onContextMenu={handleContextMenu}
+        onRenameConfirm={handleRenameConfirm}
+        onRenameCancel={handleRenameCancel}
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDragEnd={onDragEnd}
+        onDrop={onDrop}
+        dropTarget={state.dropTarget}
+      />
+      {menu.visible && menu.node && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          node={menu.node}
+          onRename={handleCtxRename}
+          onDelete={handleCtxDelete}
+          onCopyPath={handleCtxCopyPath}
+          onCreatePageHere={handleCtxCreateHere}
+          onClose={closeMenu}
         />
-        {menu.visible && menu.node && (
-          <ContextMenu
-            x={menu.x}
-            y={menu.y}
-            node={menu.node}
-            onRename={handleCtxRename}
-            onDelete={handleCtxDelete}
-            onCopyPath={handleCtxCopyPath}
-            onCreatePageHere={handleCtxCreateHere}
-            onClose={closeMenu}
-          />
-        )}
-        {showCreateDialog && (
-          <CreatePageDialog
-            folderPrefix={createPrefix}
-            onConfirm={handleCreateConfirm}
-            onCancel={handleCreateCancel}
-          />
-        )}
-        {deleteConfirm && (
-          <div class="dialog-overlay" data-testid="delete-confirm-dialog">
-            <div class="dialog-box">
-              <div class="dialog-title">Delete page?</div>
-              <div class="dialog-body">
-                <div class="dialog-field">
-                  Are you sure you want to delete <strong>{deleteConfirm.fullPath}</strong>?
-                </div>
-              </div>
-              <div class="dialog-actions">
-                <button class="dialog-btn dialog-btn-cancel" onClick={handleDeleteCancel}>
-                  Cancel
-                </button>
-                <button class="dialog-btn context-menu-item-danger" onClick={handleDeleteConfirm}>
-                  Delete
-                </button>
+      )}
+      {showCreateDialog && (
+        <CreatePageDialog
+          folderPrefix={createPrefix}
+          onConfirm={handleCreateConfirm}
+          onCancel={handleCreateCancel}
+        />
+      )}
+      {deleteConfirm && (
+        <div class="dialog-overlay" data-testid="delete-confirm-dialog">
+          <div class="dialog-box">
+            <div class="dialog-title">Delete page?</div>
+            <div class="dialog-body">
+              <div class="dialog-field">
+                Are you sure you want to delete <strong>{deleteConfirm.fullPath}</strong>?
               </div>
             </div>
+            <div class="dialog-actions">
+              <button class="dialog-btn dialog-btn-cancel" onClick={handleDeleteCancel}>
+                Cancel
+              </button>
+              <button class="dialog-btn context-menu-item-danger" onClick={handleDeleteConfirm}>
+                Delete
+              </button>
+            </div>
           </div>
-        )}
-        {state.confirmDialog.visible && state.confirmDialog.sourceNode && (
-          <ConfirmDialog
-            sourceNode={state.confirmDialog.sourceNode}
-            sourceNodes={state.confirmDialog.sourceNodes}
-            targetPath={state.confirmDialog.targetPath}
-            renameList={state.confirmDialog.renameList}
-            onConfirm={confirmMove}
-            onCancel={cancelMove}
-          />
-        )}
-        {state.isLoading && <LoadingDialog />}
-        {state.resultDialog.visible && state.resultDialog.result && (
-          <ResultDialog
-            result={state.resultDialog.result}
-            onClose={closeResultDialog}
-          />
-        )}
+        </div>
+      )}
+      {state.confirmDialog.visible && state.confirmDialog.sourceNode && (
+        <ConfirmDialog
+          sourceNode={state.confirmDialog.sourceNode}
+          sourceNodes={state.confirmDialog.sourceNodes}
+          targetPath={state.confirmDialog.targetPath}
+          renameList={state.confirmDialog.renameList}
+          onConfirm={confirmMove}
+          onCancel={cancelMove}
+        />
+      )}
+      {state.isLoading && <LoadingDialog />}
+      {state.resultDialog.visible && state.resultDialog.result && (
+        <ResultDialog result={state.resultDialog.result} onClose={closeResultDialog} />
+      )}
     </div>
   );
 }

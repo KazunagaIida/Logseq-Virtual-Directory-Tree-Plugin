@@ -19,7 +19,7 @@ export function useSelection(tree: TreeNode[]) {
 
   const isSelected = useCallback(
     (fullPath: string) => selectedPaths.has(fullPath),
-    [selectedPaths]
+    [selectedPaths],
   );
 
   const toggleSelect = useCallback(
@@ -62,7 +62,7 @@ export function useSelection(tree: TreeNode[]) {
         return new Set([fullPath]);
       });
     },
-    [tree]
+    [tree],
   );
 
   const clearSelection = useCallback(() => {

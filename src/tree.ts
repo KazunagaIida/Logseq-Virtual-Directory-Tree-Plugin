@@ -4,11 +4,18 @@ import { DEFAULT_SORT_CONFIG } from './types';
 export function parseHiddenPages(raw: string | undefined): Set<string> {
   if (!raw || !raw.trim()) return new Set();
   return new Set(
-    raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    raw
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
   );
 }
 
-export function buildTree(pages: PageEntity[], sortConfig?: SortConfig, hiddenPages?: Set<string>): TreeNode[] {
+export function buildTree(
+  pages: PageEntity[],
+  sortConfig?: SortConfig,
+  hiddenPages?: Set<string>,
+): TreeNode[] {
   const root: TreeNode[] = [];
 
   for (const page of pages) {
@@ -27,9 +34,7 @@ export function buildTree(pages: PageEntity[], sortConfig?: SortConfig, hiddenPa
       const isLast = i === parts.length - 1;
 
       // Case-insensitive search to prevent duplicate nodes
-      let existing = currentLevel.find(
-        (n) => n.name.toLowerCase() === part.toLowerCase()
-      );
+      let existing = currentLevel.find((n) => n.name.toLowerCase() === part.toLowerCase());
 
       if (!existing) {
         existing = {
@@ -80,16 +85,11 @@ export function propagateUpdatedAt(nodes: TreeNode[]): void {
   }
 }
 
-export function sortTree(
-  nodes: TreeNode[],
-  config: SortConfig = DEFAULT_SORT_CONFIG
-): void {
+export function sortTree(nodes: TreeNode[], config: SortConfig = DEFAULT_SORT_CONFIG): void {
   nodes.sort((a, b) => {
     if (config.foldersFirst) {
-      const aIsFolder =
-        a.children.length > 0 || a.type === 'folder' || a.type === 'both';
-      const bIsFolder =
-        b.children.length > 0 || b.type === 'folder' || b.type === 'both';
+      const aIsFolder = a.children.length > 0 || a.type === 'folder' || a.type === 'both';
+      const bIsFolder = b.children.length > 0 || b.type === 'folder' || b.type === 'both';
       if (aIsFolder && !bIsFolder) return -1;
       if (!aIsFolder && bIsFolder) return 1;
     }

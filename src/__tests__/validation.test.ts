@@ -16,10 +16,8 @@ describe('validatePageName', () => {
   it.each(['#', '?', '[', ']', '{', '}', '|', '\\', '^'])(
     'returns error for name containing "%s"',
     (char) => {
-      expect(validatePageName(`my${char}page`)).toBe(
-        'Page name contains invalid characters'
-      );
-    }
+      expect(validatePageName(`my${char}page`)).toBe('Page name contains invalid characters');
+    },
   );
 });
 
@@ -59,9 +57,7 @@ describe('buildNewPath', () => {
   });
 
   it('moves into a nested folder', () => {
-    expect(buildNewPath('dev/react/hooks', 'archive/2024')).toBe(
-      'archive/2024/hooks'
-    );
+    expect(buildNewPath('dev/react/hooks', 'archive/2024')).toBe('archive/2024/hooks');
   });
 });
 

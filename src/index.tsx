@@ -10,12 +10,16 @@ function detectTheme(): 'dark' | 'light' {
   try {
     const topTheme = top?.document?.documentElement?.getAttribute('data-theme');
     if (topTheme === 'dark' || topTheme === 'light') return topTheme;
-  } catch { /* sandboxed */ }
+  } catch {
+    /* sandboxed */
+  }
 
   try {
     const parentTheme = parent?.document?.documentElement?.getAttribute('data-theme');
     if (parentTheme === 'dark' || parentTheme === 'light') return parentTheme;
-  } catch { /* sandboxed */ }
+  } catch {
+    /* sandboxed */
+  }
 
   // Method 2: Check parent body background color
   try {
@@ -28,7 +32,9 @@ function detectTheme(): 'dark' | 'light' {
         return 'light';
       }
     }
-  } catch { /* sandboxed */ }
+  } catch {
+    /* sandboxed */
+  }
 
   return 'dark';
 }
