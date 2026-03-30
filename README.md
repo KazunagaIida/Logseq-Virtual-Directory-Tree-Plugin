@@ -184,6 +184,14 @@ src/
   __tests__/            # Unit and integration tests
 ```
 
+## Contributing
+
+Pull requests are welcome! However, please note:
+
+- This is a personal project maintained in my spare time
+- Response times may vary — please be patient
+- Not all PRs or feature requests may be accepted
+
 ## License
 
 MIT
