@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+
+      - name: Package plugin
+        run: |
+          mkdir -p release
+          cp -r dist release/
+          cp package.json release/
+          cp logo.svg release/
+          cp LICENSE release/
+          cp README.md release/
+          cd release && zip -r ../logseq-virtual-directory-tree.zip .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: logseq-virtual-directory-tree.zip
+          generate_release_notes: true
