@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.1.2
+
+### Bug Fixes
+
+- Add empty block after createPage to trigger disk write for git diff
+
+### Docs
+
+- Add screenshots to README (main view, sort menu, context menu, drag & drop)
+
 ## v0.1.1
 
 ### Improvements
