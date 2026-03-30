@@ -135,6 +135,7 @@ export function App() {
     shrinkIframeToPanel();
     try {
       await logseq.Editor.createPage(fullPageName);
+      await logseq.Editor.appendBlockInPage(fullPageName, '');
       logseq.App.pushState('page', { name: fullPageName });
     } catch (err) {
       console.error('Failed to create page:', err);
