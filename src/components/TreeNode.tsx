@@ -77,7 +77,7 @@ export function TreeNodeComponent({
     }
     onSelect?.(node.fullPath, false, false);
     if (node.type === 'page' || node.type === 'both') {
-      onNavigate(node.fullPath);
+      onNavigate(node.originalName ?? node.fullPath);
     } else {
       onToggle(node.fullPath);
     }
@@ -92,7 +92,7 @@ export function TreeNodeComponent({
     if (node.type === 'folder') {
       onToggle(node.fullPath);
     } else if (node.type === 'page') {
-      onNavigate(node.fullPath);
+      onNavigate(node.originalName ?? node.fullPath);
     }
   };
 

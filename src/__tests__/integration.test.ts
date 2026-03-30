@@ -312,6 +312,77 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
     expect(bNode!.children).toHaveLength(2); // c (folder) and x (page)
   });
 
+  it('buildRenameList uses originalName for pages with spaces around /', async () => {
+    const pages = [
+      makePage('人気雑誌 /smartpass/viewer fix'),
+    ];
+    const tree = buildTree(pages);
+
+    // The folder nodes use trimmed fullPath
+    const smartpass = findNode(tree, '人気雑誌/smartpass');
+    expect(smartpass).toBeDefined();
+    expect(smartpass!.type).toBe('folder');
+
+    // The leaf node preserves originalName
+    const viewer = findNode(tree, '人気雑誌/smartpass/viewer fix');
+    expect(viewer).toBeDefined();
+    expect(viewer!.originalName).toBe('人気雑誌 /smartpass/viewer fix');
+
+    // buildRenameList should use originalName as oldName for API calls
+    const renameList = buildRenameList(viewer!, 'archive');
+    expect(renameList).toHaveLength(1);
+    expect(renameList[0].oldName).toBe('人気雑誌 /smartpass/viewer fix');
+    expect(renameList[0].newName).toBe('archive/viewer fix');
+
+    const result = await executeRenames(renameList);
+    expect(result.succeeded).toHaveLength(1);
+    // The API must be called with the original name (with spaces)
+    expect(logseq.Editor.renamePage).toHaveBeenCalledWith(
+      '人気雑誌 /smartpass/viewer fix',
+      'archive/viewer fix'
+    );
+  });
+
+  it('buildRenameList handles folder containing pages with spaces around /', async () => {
+    const pages = [
+      makePage('人気雑誌 /smartpass/viewer fix'),
+      makePage('人気雑誌 /smartpass/editor fix'),
+    ];
+    const tree = buildTree(pages);
+
+    const smartpass = findNode(tree, '人気雑誌/smartpass');
+    expect(smartpass).toBeDefined();
+
+    const renameList = buildRenameList(smartpass!, 'archive');
+    expect(renameList).toHaveLength(2);
+    // oldNames should be original names (with spaces)
+    const oldNames = renameList.map((e) => e.oldName).sort();
+    expect(oldNames).toEqual([
+      '人気雑誌 /smartpass/editor fix',
+      '人気雑誌 /smartpass/viewer fix',
+    ]);
+    // newNames should be clean (trimmed)
+    const newNames = renameList.map((e) => e.newName).sort();
+    expect(newNames).toEqual([
+      'archive/smartpass/editor fix',
+      'archive/smartpass/viewer fix',
+    ]);
+  });
+
+  it('pages without spaces have originalName equal to fullPath', () => {
+    const pages = [makePage('dev/react/hooks')];
+    const tree = buildTree(pages);
+    const hooks = findNode(tree, 'dev/react/hooks');
+    expect(hooks!.originalName).toBe('dev/react/hooks');
+    expect(hooks!.originalName).toBe(hooks!.fullPath);
+
+    // buildRenameList still works the same
+    const renameList = buildRenameList(hooks!, 'cooking');
+    expect(renameList).toEqual([
+      { oldName: 'dev/react/hooks', newName: 'cooking/hooks' },
+    ]);
+  });
+
   it('type "both" nodes work correctly with D&D rename list', () => {
     const pages = [
       makePage('dev/react'),

@@ -16,6 +16,10 @@ export interface TreeNode {
   // Child nodes
   children: TreeNode[];
 
+  // Original page name from Logseq (preserves spaces around /)
+  // Only set for actual pages (type 'page' or 'both'), not synthesized folders
+  originalName?: string;
+
   // Collapse/expand state
   isExpanded: boolean;
 

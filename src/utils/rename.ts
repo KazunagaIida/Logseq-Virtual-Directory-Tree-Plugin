@@ -14,11 +14,19 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+interface PageInfo {
+  fullPath: string;
+  originalName: string;
+}
+
 // Collect all actual pages (type 'page' or 'both') under a node, recursively.
-function collectPages(node: TreeNode): string[] {
-  const pages: string[] = [];
+function collectPages(node: TreeNode): PageInfo[] {
+  const pages: PageInfo[] = [];
   if (node.type === 'page' || node.type === 'both') {
-    pages.push(node.fullPath);
+    pages.push({
+      fullPath: node.fullPath,
+      originalName: node.originalName ?? node.fullPath,
+    });
   }
   for (const child of node.children) {
     pages.push(...collectPages(child));
@@ -28,6 +36,7 @@ function collectPages(node: TreeNode): string[] {
 
 // Build a list of renames needed to move sourceNode into targetFolder.
 // If targetFolder is empty string, it means moving to root (namespace removal).
+// Uses fullPath (trimmed) for prefix matching, originalName for API calls.
 export function buildRenameList(
   sourceNode: TreeNode,
   targetFolder: string
@@ -35,15 +44,16 @@ export function buildRenameList(
   const pages = collectPages(sourceNode);
   const sourcePrefix = sourceNode.fullPath;
 
-  return pages.map((oldName) => {
-    // Replace the source prefix with the new target prefix
-    const suffix = oldName.slice(sourcePrefix.length); // e.g. "" or "/hooks"
+  return pages.map(({ fullPath, originalName }) => {
+    // Use trimmed fullPath for prefix matching (consistent with tree structure)
+    const suffix = fullPath.slice(sourcePrefix.length); // e.g. "" or "/hooks"
     const newBase =
       targetFolder === ''
         ? sourceNode.name
         : targetFolder + '/' + sourceNode.name;
     const newName = newBase + suffix;
-    return { oldName, newName };
+    // Use originalName for the API call (preserves spaces around /)
+    return { oldName: originalName, newName };
   });
 }
 

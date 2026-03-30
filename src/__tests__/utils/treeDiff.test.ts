@@ -77,4 +77,16 @@ describe('hasTreeChanged', () => {
     const next = [makeNode('banana', 'page'), makeNode('apple', 'page')];
     expect(hasTreeChanged(old, next)).toBe(true);
   });
+
+  it('returns true when originalName changes but fullPath stays the same', () => {
+    const old = [{ ...makeNode('a/b', 'page'), originalName: 'a /b' }];
+    const next = [{ ...makeNode('a/b', 'page'), originalName: 'a/b' }];
+    expect(hasTreeChanged(old, next)).toBe(true);
+  });
+
+  it('returns false when originalName is the same', () => {
+    const old = [{ ...makeNode('a/b', 'page'), originalName: 'a /b' }];
+    const same = [{ ...makeNode('a/b', 'page'), originalName: 'a /b' }];
+    expect(hasTreeChanged(old, same)).toBe(false);
+  });
 });

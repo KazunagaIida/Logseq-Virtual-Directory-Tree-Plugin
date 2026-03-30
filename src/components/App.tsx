@@ -151,13 +151,20 @@ export function App() {
 
       // If node has children, rename all descendants too
       if (node.children.length > 0 || node.type === 'both') {
-        const renameList = buildRenameList(node, '').map((entry) => ({
-          oldName: entry.oldName,
-          newName: entry.oldName.replace(oldPath, newPath),
-        }));
-        // Also include the node itself if it's a page
+        // buildRenameList uses fullPath for prefix matching, originalName for API oldName
+        const entries = buildRenameList(node, '');
+        const renameList = entries.map((entry) => {
+          // entry.oldName is originalName; compute newName using trimmed fullPath prefix
+          // Find matching fullPath from the node's subtree
+          const suffix = entry.newName.slice(node.name.length);
+          return { oldName: entry.oldName, newName: newPath + suffix };
+        });
+        // Also include the node itself if it's a page (using originalName)
         if (node.type === 'page' || node.type === 'both') {
-          renameList.unshift({ oldName: oldPath, newName: newPath });
+          renameList.unshift({
+            oldName: node.originalName ?? node.fullPath,
+            newName: newPath,
+          });
         }
         // Deduplicate
         const seen = new Set<string>();
@@ -169,7 +176,10 @@ export function App() {
         await executeRenames(unique);
       } else {
         try {
-          await logseq.Editor.renamePage(oldPath, newPath);
+          await logseq.Editor.renamePage(
+            node.originalName ?? node.fullPath,
+            newPath
+          );
         } catch (err) {
           console.error('Failed to rename:', err);
         }
@@ -195,7 +205,7 @@ export function App() {
   const handleDeleteConfirm = useCallback(async () => {
     if (!deleteConfirm) return;
     try {
-      await logseq.Editor.deletePage(deleteConfirm.fullPath);
+      await logseq.Editor.deletePage(deleteConfirm.originalName ?? deleteConfirm.fullPath);
     } catch (err) {
       console.error('Failed to delete:', err);
     }
@@ -212,7 +222,7 @@ export function App() {
 
   const handleCtxCopyPath = useCallback(() => {
     if (menu.node) {
-      navigator.clipboard.writeText(menu.node.fullPath).catch(() => {});
+      navigator.clipboard.writeText(menu.node.originalName ?? menu.node.fullPath).catch(() => {});
     }
     closeMenu();
   }, [menu.node, closeMenu]);

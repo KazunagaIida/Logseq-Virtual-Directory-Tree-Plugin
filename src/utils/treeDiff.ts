@@ -2,7 +2,7 @@ import type { TreeNode } from '../types';
 
 function collectSignatures(nodes: TreeNode[], out: string[]): void {
   for (const n of nodes) {
-    out.push(n.fullPath + ':' + n.type);
+    out.push(n.fullPath + ':' + n.type + ':' + (n.originalName ?? ''));
     collectSignatures(n.children, out);
   }
 }

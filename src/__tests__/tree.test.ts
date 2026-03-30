@@ -203,6 +203,49 @@ describe('buildTree', () => {
     expect(ts.name).toBe('typescript');
     expect(ts.fullPath).toBe('dev/typescript');
   });
+
+  it('sets originalName on leaf page nodes', () => {
+    const tree = buildTree([makePage('dev/react/hooks')]);
+    const hooks = tree[0].children[0].children[0];
+    expect(hooks.originalName).toBe('dev/react/hooks');
+  });
+
+  it('does not set originalName on intermediate folder nodes', () => {
+    const tree = buildTree([makePage('dev/react/hooks')]);
+    expect(tree[0].originalName).toBeUndefined(); // dev = folder
+    expect(tree[0].children[0].originalName).toBeUndefined(); // react = folder
+  });
+
+  it('sets originalName on both-type nodes', () => {
+    const tree = buildTree([
+      makePage('dev/react'),
+      makePage('dev/react/hooks'),
+    ]);
+    const react = tree[0].children[0];
+    expect(react.type).toBe('both');
+    expect(react.originalName).toBe('dev/react');
+  });
+
+  it('preserves original page name with spaces in originalName', () => {
+    const tree = buildTree([
+      makePage('人気雑誌 /smartpass/viewer fix'),
+    ]);
+    // fullPath is trimmed (for internal use)
+    const viewer = tree[0].children[0].children[0];
+    expect(viewer.fullPath).toBe('人気雑誌/smartpass/viewer fix');
+    // originalName preserves the original page name with spaces around /
+    expect(viewer.originalName).toBe('人気雑誌 /smartpass/viewer fix');
+  });
+
+  it('preserves spaces in originalName while trimming fullPath', () => {
+    const tree = buildTree([
+      makePage('a /b / c'),
+    ]);
+    const leaf = tree[0].children[0].children[0];
+    expect(leaf.name).toBe('c');
+    expect(leaf.fullPath).toBe('a/b/c');
+    expect(leaf.originalName).toBe('a /b / c');
+  });
 });
 
 function makeNode(

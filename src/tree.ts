@@ -28,6 +28,7 @@ export function buildTree(pages: PageEntity[], sortConfig?: SortConfig): TreeNod
           fullPath,
           type: isLast ? 'page' : 'folder',
           children: [],
+          originalName: isLast ? originalName : undefined,
           isExpanded: false,
           updatedAt: isLast && typeof page.updatedAt === 'number' ? page.updatedAt : undefined,
         };
@@ -35,6 +36,7 @@ export function buildTree(pages: PageEntity[], sortConfig?: SortConfig): TreeNod
       } else if (isLast && existing.type === 'folder') {
         // Node was a folder, now also a page
         existing.type = 'both';
+        existing.originalName = originalName;
         if (typeof page.updatedAt === 'number') {
           existing.updatedAt = page.updatedAt;
         }
