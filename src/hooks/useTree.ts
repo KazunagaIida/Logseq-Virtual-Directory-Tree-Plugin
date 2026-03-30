@@ -7,10 +7,7 @@ import { hasTreeChanged } from '../utils/treeDiff';
 
 const POLL_INTERVAL = 5000;
 
-function applyExpandedState(
-  nodes: TreeNode[],
-  expandedSet: Set<string>
-): void {
+function applyExpandedState(nodes: TreeNode[], expandedSet: Set<string>): void {
   for (const node of nodes) {
     if (expandedSet.has(node.fullPath.toLowerCase())) {
       node.isExpanded = true;
@@ -30,10 +27,7 @@ function collectExpandedPaths(nodes: TreeNode[]): string[] {
   return paths;
 }
 
-function toggleNodeExpanded(
-  nodes: TreeNode[],
-  fullPath: string
-): TreeNode[] {
+function toggleNodeExpanded(nodes: TreeNode[], fullPath: string): TreeNode[] {
   return nodes.map((node) => {
     if (node.fullPath === fullPath) {
       return { ...node, isExpanded: !node.isExpanded };
@@ -49,18 +43,16 @@ function toggleNodeExpanded(
 function expandAncestors(
   nodes: TreeNode[],
   fullPath: string,
-  expandedSet: Set<string>
+  expandedSet: Set<string>,
 ): TreeNode[] {
   const parts = fullPath.split('/');
   // Build ancestor paths: for "a/b/c" -> ["a", "a/b"]
-  const ancestorPaths = parts.slice(0, -1).map((_, i) =>
-    parts.slice(0, i + 1).join('/')
-  );
+  const ancestorPaths = parts.slice(0, -1).map((_, i) => parts.slice(0, i + 1).join('/'));
 
   function expand(nodes: TreeNode[]): TreeNode[] {
     return nodes.map((node) => {
       const shouldExpand = ancestorPaths.some(
-        (p) => p.toLowerCase() === node.fullPath.toLowerCase()
+        (p) => p.toLowerCase() === node.fullPath.toLowerCase(),
       );
       if (shouldExpand) {
         expandedSet.add(node.fullPath.toLowerCase());
@@ -119,8 +111,7 @@ export function useTree(options: UseTreeOptions = {}) {
     if (isBusy && isBusy()) return;
 
     try {
-      const pages =
-        (await logseq.Editor.getAllPages()) as PageEntity[] | null;
+      const pages = (await logseq.Editor.getAllPages()) as PageEntity[] | null;
       if (!pages) {
         if (treeRef.current.length > 0) {
           treeRef.current = [];
@@ -183,8 +174,7 @@ export function useTree(options: UseTreeOptions = {}) {
       // Force reload regardless of busy state for post-operation retry
       (async () => {
         try {
-          const pages =
-            (await logseq.Editor.getAllPages()) as PageEntity[] | null;
+          const pages = (await logseq.Editor.getAllPages()) as PageEntity[] | null;
           if (!pages) {
             treeRef.current = [];
             setTree([]);
@@ -207,29 +197,26 @@ export function useTree(options: UseTreeOptions = {}) {
     }, 500);
   }, []);
 
-  const toggle = useCallback(
-    (fullPath: string) => {
-      setTree((prev) => {
-        const updated = toggleNodeExpanded(prev, fullPath);
+  const toggle = useCallback((fullPath: string) => {
+    setTree((prev) => {
+      const updated = toggleNodeExpanded(prev, fullPath);
 
-        // Update expanded set
-        const lower = fullPath.toLowerCase();
-        if (expandedRef.current.has(lower)) {
-          expandedRef.current.delete(lower);
-        } else {
-          expandedRef.current.add(lower);
-        }
+      // Update expanded set
+      const lower = fullPath.toLowerCase();
+      if (expandedRef.current.has(lower)) {
+        expandedRef.current.delete(lower);
+      } else {
+        expandedRef.current.add(lower);
+      }
 
-        // Persist
-        const paths = collectExpandedPaths(updated);
-        logseq.updateSettings({ expandedFolders: paths });
+      // Persist
+      const paths = collectExpandedPaths(updated);
+      logseq.updateSettings({ expandedFolders: paths });
 
-        treeRef.current = updated;
-        return updated;
-      });
-    },
-    []
-  );
+      treeRef.current = updated;
+      return updated;
+    });
+  }, []);
 
   const navigate = useCallback((fullPath: string) => {
     logseq.App.pushState('page', { name: fullPath });
@@ -311,5 +298,17 @@ export function useTree(options: UseTreeOptions = {}) {
     });
   }, []);
 
-  return { tree, activeNode, sortConfig, toggle, navigate, reload: loadTree, delayedReload, revealPage, expandAll, collapseAll, changeSortConfig };
+  return {
+    tree,
+    activeNode,
+    sortConfig,
+    toggle,
+    navigate,
+    reload: loadTree,
+    delayedReload,
+    revealPage,
+    expandAll,
+    collapseAll,
+    changeSortConfig,
+  };
 }

@@ -31,7 +31,11 @@ export function ContextMenu({
   };
 
   return (
-    <div class="context-menu-overlay" onClick={handleOverlayClick} data-testid="context-menu-overlay">
+    <div
+      class="context-menu-overlay"
+      onClick={handleOverlayClick}
+      data-testid="context-menu-overlay"
+    >
       <div
         class="context-menu"
         style={{ left: `${x}px`, top: `${y}px` }}
@@ -52,7 +56,11 @@ export function ContextMenu({
           Copy path
         </button>
         {(isPage || isBoth) && (
-          <button class="context-menu-item context-menu-item-danger" onClick={onDelete} data-testid="ctx-delete">
+          <button
+            class="context-menu-item context-menu-item-danger"
+            onClick={onDelete}
+            data-testid="ctx-delete"
+          >
             Delete
           </button>
         )}

@@ -58,10 +58,7 @@ describe('Integration: tree build -> node lookup -> path generation -> validatio
   });
 
   it('detects circular drop when moving folder into its own child', () => {
-    const pages = [
-      makePage('dev/react/hooks'),
-      makePage('dev/react/state'),
-    ];
+    const pages = [makePage('dev/react/hooks'), makePage('dev/react/state')];
     const tree = buildTree(pages);
 
     const devNode = findNode(tree, 'dev');
@@ -96,9 +93,7 @@ describe('Integration: buildTree -> buildRenameList -> executeRenames', () => {
     vi.clearAllMocks();
     vi.restoreAllMocks();
     (logseq.Editor.getPage as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockResolvedValue(
-      undefined
-    );
+    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
   });
 
   it('moves a folder with all children successfully', async () => {
@@ -125,11 +120,7 @@ describe('Integration: buildTree -> buildRenameList -> executeRenames', () => {
   });
 
   it('handles partial failure when target name already exists', async () => {
-    const pages = [
-      makePage('dev/react'),
-      makePage('dev/react/hooks'),
-      makePage('dev/react/state'),
-    ];
+    const pages = [makePage('dev/react'), makePage('dev/react/hooks'), makePage('dev/react/state')];
     const tree = buildTree(pages);
     const reactNode = findNode(tree, 'dev/react');
     const renameList = buildRenameList(reactNode!, 'archive');
@@ -148,26 +139,18 @@ describe('Integration: buildTree -> buildRenameList -> executeRenames', () => {
   });
 
   it('moves a page to root (namespace removal)', async () => {
-    const pages = [
-      makePage('dev/react/hooks'),
-      makePage('dev/react/state'),
-    ];
+    const pages = [makePage('dev/react/hooks'), makePage('dev/react/state')];
     const tree = buildTree(pages);
     const hooksNode = findNode(tree, 'dev/react/hooks');
     expect(hooksNode).toBeDefined();
 
     const renameList = buildRenameList(hooksNode!, '');
-    expect(renameList).toEqual([
-      { oldName: 'dev/react/hooks', newName: 'hooks' },
-    ]);
+    expect(renameList).toEqual([{ oldName: 'dev/react/hooks', newName: 'hooks' }]);
 
     const result = await executeRenames(renameList);
     expect(result.succeeded).toHaveLength(1);
     expect(result.failed).toHaveLength(0);
-    expect(logseq.Editor.renamePage).toHaveBeenCalledWith(
-      'dev/react/hooks',
-      'hooks'
-    );
+    expect(logseq.Editor.renamePage).toHaveBeenCalledWith('dev/react/hooks', 'hooks');
   });
 
   it('handles renamePage API error gracefully', async () => {
@@ -177,7 +160,7 @@ describe('Integration: buildTree -> buildRenameList -> executeRenames', () => {
     const renameList = buildRenameList(hooksNode!, 'cooking');
 
     (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-      new Error('Logseq internal error')
+      new Error('Logseq internal error'),
     );
 
     const result = await executeRenames(renameList);
@@ -190,10 +173,7 @@ describe('Integration: buildTree -> buildRenameList -> executeRenames', () => {
 describe('Integration: buildTree -> add pages -> rebuild -> correct update', () => {
   it('rebuilding tree after adding pages produces correct structure', () => {
     // Initial state: 2 pages
-    const initialPages = [
-      makePage('dev/react/hooks'),
-      makePage('cooking/sous-vide'),
-    ];
+    const initialPages = [makePage('dev/react/hooks'), makePage('cooking/sous-vide')];
     const tree1 = buildTree(initialPages);
     expect(tree1).toHaveLength(2); // cooking, dev (folders first, alphabetical)
     expect(tree1[0].name).toBe('cooking');
@@ -215,19 +195,13 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
     const cooking = findNode(tree2, 'cooking');
     expect(cooking).toBeDefined();
     expect(cooking!.children).toHaveLength(2);
-    expect(cooking!.children.map((c) => c.name).sort()).toEqual([
-      'grilling',
-      'sous-vide',
-    ]);
+    expect(cooking!.children.map((c) => c.name).sort()).toEqual(['grilling', 'sous-vide']);
 
     // dev/react now has 2 children
     const react = findNode(tree2, 'dev/react');
     expect(react).toBeDefined();
     expect(react!.children).toHaveLength(2);
-    expect(react!.children.map((c) => c.name).sort()).toEqual([
-      'hooks',
-      'state',
-    ]);
+    expect(react!.children.map((c) => c.name).sort()).toEqual(['hooks', 'state']);
 
     // dev now has 2 children (react folder, typescript page)
     const dev = findNode(tree2, 'dev');
@@ -246,10 +220,7 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
     expect(react1!.children).toHaveLength(2);
 
     // Remove dev/react/state
-    const reducedPages = [
-      makePage('dev/react/hooks'),
-      makePage('dev/typescript'),
-    ];
+    const reducedPages = [makePage('dev/react/hooks'), makePage('dev/typescript')];
     const tree2 = buildTree(reducedPages);
     const react2 = findNode(tree2, 'dev/react');
     expect(react2!.children).toHaveLength(1);
@@ -293,11 +264,7 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
   });
 
   it('handles 5+ level deep namespaces correctly', () => {
-    const pages = [
-      makePage('a/b/c/d/e/f'),
-      makePage('a/b/c/d/e/g'),
-      makePage('a/b/x'),
-    ];
+    const pages = [makePage('a/b/c/d/e/f'), makePage('a/b/c/d/e/g'), makePage('a/b/x')];
     const tree = buildTree(pages);
 
     // Verify deep structure
@@ -313,9 +280,7 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
   });
 
   it('buildRenameList uses originalName for pages with spaces around /', async () => {
-    const pages = [
-      makePage('人気雑誌 /smartpass/viewer fix'),
-    ];
+    const pages = [makePage('人気雑誌 /smartpass/viewer fix')];
     const tree = buildTree(pages);
 
     // The folder nodes use trimmed fullPath
@@ -339,7 +304,7 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
     // The API must be called with the original name (with spaces)
     expect(logseq.Editor.renamePage).toHaveBeenCalledWith(
       '人気雑誌 /smartpass/viewer fix',
-      'archive/viewer fix'
+      'archive/viewer fix',
     );
   });
 
@@ -357,16 +322,10 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
     expect(renameList).toHaveLength(2);
     // oldNames should be original names (with spaces)
     const oldNames = renameList.map((e) => e.oldName).sort();
-    expect(oldNames).toEqual([
-      '人気雑誌 /smartpass/editor fix',
-      '人気雑誌 /smartpass/viewer fix',
-    ]);
+    expect(oldNames).toEqual(['人気雑誌 /smartpass/editor fix', '人気雑誌 /smartpass/viewer fix']);
     // newNames should be clean (trimmed)
     const newNames = renameList.map((e) => e.newName).sort();
-    expect(newNames).toEqual([
-      'archive/smartpass/editor fix',
-      'archive/smartpass/viewer fix',
-    ]);
+    expect(newNames).toEqual(['archive/smartpass/editor fix', 'archive/smartpass/viewer fix']);
   });
 
   it('pages without spaces have originalName equal to fullPath', () => {
@@ -378,17 +337,11 @@ describe('Integration: buildTree -> add pages -> rebuild -> correct update', () 
 
     // buildRenameList still works the same
     const renameList = buildRenameList(hooks!, 'cooking');
-    expect(renameList).toEqual([
-      { oldName: 'dev/react/hooks', newName: 'cooking/hooks' },
-    ]);
+    expect(renameList).toEqual([{ oldName: 'dev/react/hooks', newName: 'cooking/hooks' }]);
   });
 
   it('type "both" nodes work correctly with D&D rename list', () => {
-    const pages = [
-      makePage('dev/react'),
-      makePage('dev/react/hooks'),
-      makePage('dev/react/state'),
-    ];
+    const pages = [makePage('dev/react'), makePage('dev/react/hooks'), makePage('dev/react/state')];
     const tree = buildTree(pages);
     const reactNode = findNode(tree, 'dev/react');
     expect(reactNode!.type).toBe('both');

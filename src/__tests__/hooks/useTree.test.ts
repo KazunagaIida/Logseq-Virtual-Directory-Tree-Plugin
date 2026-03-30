@@ -26,9 +26,7 @@ describe('useTree - revealPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
-      testPages
-    );
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(testPages);
     logseq.settings = {};
   });
 
@@ -121,9 +119,7 @@ describe('useTree - expandAll / collapseAll', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
-      testPages
-    );
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(testPages);
     logseq.settings = {};
   });
 
@@ -182,9 +178,7 @@ describe('useTree - smart reload', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
-      testPages
-    );
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(testPages);
     logseq.settings = {};
   });
 
@@ -223,9 +217,7 @@ describe('useTree - smart reload', () => {
 
     // Change the data
     const newPages = [...testPages, makePage('new-page')];
-    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
-      newPages
-    );
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(newPages);
 
     await act(async () => {
       await result.current.reload();
@@ -252,10 +244,9 @@ describe('useTree - smart reload', () => {
 
   it('polls while visible and stops when not', async () => {
     const props = { visible: true };
-    const { result, rerender } = renderHook(
-      (p: UseTreeOptions) => useTree(p),
-      { initialProps: props }
-    );
+    const { rerender } = renderHook((p: UseTreeOptions) => useTree(p), {
+      initialProps: props,
+    });
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
@@ -268,20 +259,23 @@ describe('useTree - smart reload', () => {
       await vi.advanceTimersByTimeAsync(5000);
     });
 
-    const callCountAfterPoll = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+    const callCountAfterPoll = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls
+      .length;
     expect(callCountAfterPoll).toBeGreaterThan(callCount);
 
     // Switch to not visible
     rerender({ visible: false });
 
-    const callCountBeforeHidden = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+    const callCountBeforeHidden = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls
+      .length;
 
     // Advance 10 seconds - no polling should happen
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10000);
     });
 
-    const callCountAfterHidden = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls.length;
+    const callCountAfterHidden = (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mock.calls
+      .length;
     expect(callCountAfterHidden).toBe(callCountBeforeHidden);
   });
 
@@ -301,9 +295,7 @@ describe('useTree - smart reload', () => {
     // Set busy, change data, and try to reload
     busy = true;
     const newPages = [...testPages, makePage('new-page')];
-    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(
-      newPages
-    );
+    (logseq.Editor.getAllPages as ReturnType<typeof vi.fn>).mockResolvedValue(newPages);
 
     await act(async () => {
       await result.current.reload();

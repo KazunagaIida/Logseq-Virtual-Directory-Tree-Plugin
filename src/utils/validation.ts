@@ -1,7 +1,7 @@
 // Check for invalid characters in a page name.
 // Returns an error message string, or null if valid.
 export function validatePageName(name: string): string | null {
-  if (/[#?\[\]{}|\\^]/.test(name)) {
+  if (/[#?[\]{}|\\^]/.test(name)) {
     return 'Page name contains invalid characters';
   }
   return null;
@@ -24,10 +24,7 @@ export function checkCircularDrop(source: string, target: string): boolean {
 
 // Build the new full path when moving sourcePath into targetFolderPath.
 // Takes the leaf name from source and appends it to the target folder.
-export function buildNewPath(
-  sourcePath: string,
-  targetFolderPath: string
-): string {
+export function buildNewPath(sourcePath: string, targetFolderPath: string): string {
   const parts = sourcePath.split('/');
   const leafName = parts[parts.length - 1];
   return targetFolderPath + '/' + leafName;

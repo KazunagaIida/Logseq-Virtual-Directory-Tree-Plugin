@@ -7,10 +7,7 @@ function collectSignatures(nodes: TreeNode[], out: string[]): void {
   }
 }
 
-export function hasTreeChanged(
-  oldTree: TreeNode[],
-  newTree: TreeNode[]
-): boolean {
+export function hasTreeChanged(oldTree: TreeNode[], newTree: TreeNode[]): boolean {
   const oldSigs: string[] = [];
   const newSigs: string[] = [];
   collectSignatures(oldTree, oldSigs);

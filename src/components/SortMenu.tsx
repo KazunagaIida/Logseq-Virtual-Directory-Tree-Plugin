@@ -27,24 +27,22 @@ export function SortMenu({ config, onChange, onClose }: SortMenuProps) {
 
   return (
     <div class="sort-menu-overlay" onClick={handleOverlayClick} data-testid="sort-menu-overlay">
-      <div
-        class="sort-menu"
-        onClick={(e: Event) => e.stopPropagation()}
-        data-testid="sort-menu"
-      >
+      <div class="sort-menu" onClick={(e: Event) => e.stopPropagation()} data-testid="sort-menu">
         <button
           class={`sort-menu-item${isActive('name', 'asc') ? ' sort-menu-item-active' : ''}`}
           onClick={() => setSort('name', 'asc')}
           data-testid="sort-name-asc"
         >
-          {isActive('name', 'asc') ? '\u2713 ' : '\u2003 '}{'Name (A \u2192 Z)'}
+          {isActive('name', 'asc') ? '\u2713 ' : '\u2003 '}
+          {'Name (A \u2192 Z)'}
         </button>
         <button
           class={`sort-menu-item${isActive('name', 'desc') ? ' sort-menu-item-active' : ''}`}
           onClick={() => setSort('name', 'desc')}
           data-testid="sort-name-desc"
         >
-          {isActive('name', 'desc') ? '\u2713 ' : '\u2003 '}{'Name (Z \u2192 A)'}
+          {isActive('name', 'desc') ? '\u2713 ' : '\u2003 '}
+          {'Name (Z \u2192 A)'}
         </button>
         <div class="sort-menu-separator" />
         <button
