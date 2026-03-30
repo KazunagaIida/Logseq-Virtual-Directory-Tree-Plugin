@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import type { TreeNode, PageEntity, SortConfig } from '../types';
 import { DEFAULT_SORT_CONFIG } from '../types';
-import { buildTree, sortTree } from '../tree';
+import { buildTree, sortTree, parseHiddenPages } from '../tree';
 import { debounce } from '../utils/debounce';
 import { hasTreeChanged } from '../utils/treeDiff';
 
@@ -129,7 +129,8 @@ export function useTree(options: UseTreeOptions = {}) {
         return;
       }
 
-      const newTree = buildTree(pages, sortConfigRef.current);
+      const hidden = parseHiddenPages(logseq.settings?.hiddenPages as string | undefined);
+      const newTree = buildTree(pages, sortConfigRef.current, hidden);
 
       // Restore expanded state
       const saved = logseq.settings?.expandedFolders as string[] | undefined;
@@ -189,7 +190,8 @@ export function useTree(options: UseTreeOptions = {}) {
             setTree([]);
             return;
           }
-          const newTree = buildTree(pages, sortConfigRef.current);
+          const hidden = parseHiddenPages(logseq.settings?.hiddenPages as string | undefined);
+          const newTree = buildTree(pages, sortConfigRef.current, hidden);
           const saved = logseq.settings?.expandedFolders as string[] | undefined;
           if (saved && expandedRef.current.size === 0) {
             expandedRef.current = new Set(saved.map((s) => s.toLowerCase()));

@@ -1,13 +1,23 @@
 import type { TreeNode, PageEntity, SortConfig } from './types';
 import { DEFAULT_SORT_CONFIG } from './types';
 
-export function buildTree(pages: PageEntity[], sortConfig?: SortConfig): TreeNode[] {
+export function parseHiddenPages(raw: string | undefined): Set<string> {
+  if (!raw || !raw.trim()) return new Set();
+  return new Set(
+    raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+  );
+}
+
+export function buildTree(pages: PageEntity[], sortConfig?: SortConfig, hiddenPages?: Set<string>): TreeNode[] {
   const root: TreeNode[] = [];
 
   for (const page of pages) {
     if (page['journal?']) continue;
 
     const originalName = page.originalName || page.name;
+    const rootSegment = originalName.split('/')[0].trim().toLowerCase();
+    if (hiddenPages && hiddenPages.size > 0 && hiddenPages.has(rootSegment)) continue;
+
     const parts = originalName.split('/').map((p) => p.trim());
     let currentLevel = root;
 

@@ -38,6 +38,17 @@ function applyTheme(theme: 'dark' | 'light') {
 }
 
 function main() {
+  logseq.useSettingsSchema([
+    {
+      key: 'hiddenPages',
+      type: 'string',
+      default: 'card, Favorites, Contents',
+      title: 'Hidden Pages',
+      description:
+        'Comma-separated root-level names to hide from the tree. A name hides the page itself and all pages under it (e.g., "card" hides "card", "card/deck1", "card/deck1/sub", etc.). Matching is case-insensitive ("contents" = "Contents"). Only root-level names are supported — nested paths like "dev/react" will not work.',
+    },
+  ]);
+
   logseq.provideModel({
     togglePanel() {
       logseq.toggleMainUI();

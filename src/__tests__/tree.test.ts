@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildTree, sortTree, propagateUpdatedAt } from '../tree';
+import { buildTree, sortTree, propagateUpdatedAt, parseHiddenPages } from '../tree';
 import type { PageEntity, SortConfig, TreeNode } from '../types';
 
 function makePage(
@@ -510,5 +510,89 @@ describe('buildTree with updatedAt', () => {
       { key: 'updatedAt', direction: 'desc', foldersFirst: false }
     );
     expect(tree.map((n) => n.name)).toEqual(['new-page', 'old-page']);
+  });
+});
+
+describe('parseHiddenPages', () => {
+  it('parses comma-separated string into lowercase set', () => {
+    const set = parseHiddenPages('card, Favorites, Contents');
+    expect(set).toEqual(new Set(['card', 'favorites', 'contents']));
+  });
+
+  it('returns empty set for undefined', () => {
+    expect(parseHiddenPages(undefined)).toEqual(new Set());
+  });
+
+  it('returns empty set for empty string', () => {
+    expect(parseHiddenPages('')).toEqual(new Set());
+    expect(parseHiddenPages('   ')).toEqual(new Set());
+  });
+
+  it('ignores extra commas and whitespace', () => {
+    const set = parseHiddenPages(' card ,, , Favorites ');
+    expect(set).toEqual(new Set(['card', 'favorites']));
+  });
+});
+
+describe('buildTree with hiddenPages', () => {
+  it('hides pages matching hiddenPages list', () => {
+    const hidden = new Set(['card', 'favorites', 'contents']);
+    const tree = buildTree([
+      makePage('card'),
+      makePage('Favorites'),
+      makePage('Contents'),
+      makePage('memo'),
+    ], undefined, hidden);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].name).toBe('memo');
+  });
+
+  it('matches case-insensitively', () => {
+    const hidden = new Set(['contents']);
+    const tree = buildTree([
+      makePage('CONTENTS'),
+      makePage('contents'),
+      makePage('Contents'),
+      makePage('memo'),
+    ], undefined, hidden);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].name).toBe('memo');
+  });
+
+  it('hides namespace pages whose root segment matches', () => {
+    const hidden = new Set(['card']);
+    const tree = buildTree([
+      makePage('card/deck1'),
+      makePage('card/deck2'),
+      makePage('memo'),
+    ], undefined, hidden);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].name).toBe('memo');
+  });
+
+  it('does not hide pages when hiddenPages is undefined', () => {
+    const tree = buildTree([
+      makePage('card'),
+      makePage('memo'),
+    ], undefined, undefined);
+    expect(tree).toHaveLength(2);
+  });
+
+  it('does not hide pages when hiddenPages is empty set', () => {
+    const tree = buildTree([
+      makePage('card'),
+      makePage('memo'),
+    ], undefined, new Set());
+    expect(tree).toHaveLength(2);
+  });
+
+  it('handles spaces around / in page name for hidden root matching', () => {
+    const hidden = new Set(['favorites']);
+    const tree = buildTree([
+      makePage('Favorites / sub-page'),
+      makePage('memo'),
+    ], undefined, hidden);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].name).toBe('memo');
   });
 });
