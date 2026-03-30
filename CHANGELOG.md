@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.1
+
+### Improvements
+
+- Remove redundant "Virtual Directory" title from panel header
+- Split CI into separate lint, format, test, and build jobs
+
 ## v0.1.0 — Initial Release
 
 ### Features
