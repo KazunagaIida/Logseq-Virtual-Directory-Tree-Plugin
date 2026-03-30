@@ -2,11 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { buildRenameList, buildRenameListMulti, executeRenames } from '../utils/rename';
 import type { TreeNode } from '../types';
 
-function makeNode(
-  fullPath: string,
-  type: TreeNode['type'],
-  children: TreeNode[] = []
-): TreeNode {
+function makeNode(fullPath: string, type: TreeNode['type'], children: TreeNode[] = []): TreeNode {
   const parts = fullPath.split('/');
   return {
     name: parts[parts.length - 1],
@@ -22,9 +18,7 @@ describe('buildRenameList', () => {
   it('generates a single rename for a page move', () => {
     const node = makeNode('dev/react/hooks', 'page');
     const list = buildRenameList(node, 'cooking');
-    expect(list).toEqual([
-      { oldName: 'dev/react/hooks', newName: 'cooking/hooks' },
-    ]);
+    expect(list).toEqual([{ oldName: 'dev/react/hooks', newName: 'cooking/hooks' }]);
   });
 
   it('filters out no-op renames when target folder is the same as source parent', () => {
@@ -44,9 +38,7 @@ describe('buildRenameList', () => {
   it('filters out no-op entries in a folder move while keeping real renames', () => {
     // A 'both' node at dev/react moved to dev → dev/react stays the same (no-op),
     // but dev/react/hooks → dev/react/hooks is also no-op. All filtered.
-    const node = makeNode('dev/react', 'both', [
-      makeNode('dev/react/hooks', 'page'),
-    ]);
+    const node = makeNode('dev/react', 'both', [makeNode('dev/react/hooks', 'page')]);
     const list = buildRenameList(node, 'dev');
     expect(list).toEqual([]);
   });
@@ -67,9 +59,7 @@ describe('buildRenameList', () => {
 
   it('generates renames for nested child folders', () => {
     const node = makeNode('dev', 'folder', [
-      makeNode('dev/react', 'both', [
-        makeNode('dev/react/hooks', 'page'),
-      ]),
+      makeNode('dev/react', 'both', [makeNode('dev/react/hooks', 'page')]),
       makeNode('dev/ts', 'page'),
     ]);
     const list = buildRenameList(node, 'archive');
@@ -81,9 +71,7 @@ describe('buildRenameList', () => {
   });
 
   it('generates renames for root drop (namespace removal)', () => {
-    const node = makeNode('dev/react', 'both', [
-      makeNode('dev/react/hooks', 'page'),
-    ]);
+    const node = makeNode('dev/react', 'both', [makeNode('dev/react/hooks', 'page')]);
     const list = buildRenameList(node, '');
     expect(list).toEqual([
       { oldName: 'dev/react', newName: 'react' },
@@ -105,9 +93,7 @@ describe('buildRenameListMulti', () => {
 
   it('deduplicates pages that appear in multiple sources', () => {
     // Parent node includes child, and child is also a separate source
-    const parent = makeNode('dev/react', 'both', [
-      makeNode('dev/react/hooks', 'page'),
-    ]);
+    const parent = makeNode('dev/react', 'both', [makeNode('dev/react/hooks', 'page')]);
     const child = makeNode('dev/react/hooks', 'page');
     const list = buildRenameListMulti([parent, child], 'archive');
     // dev/react/hooks should appear only once
@@ -137,9 +123,7 @@ describe('executeRenames', () => {
     vi.clearAllMocks();
     vi.restoreAllMocks();
     (logseq.Editor.getPage as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockResolvedValue(
-      undefined
-    );
+    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
   });
 
   it('returns all entries in succeeded when all succeed', async () => {
@@ -181,8 +165,10 @@ describe('executeRenames', () => {
 
   it('skips descendant renames when parent rename fails (already exists)', async () => {
     // Parent exists → fails; child should be skipped
-    (logseq.Editor.getPage as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ id: 1, name: 'target' }); // parent exists
+    (logseq.Editor.getPage as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      id: 1,
+      name: 'target',
+    }); // parent exists
 
     const list = [
       { oldName: 'TODOs/2026-02-10', newName: '2026-02-10' },
@@ -198,8 +184,9 @@ describe('executeRenames', () => {
   });
 
   it('skips descendant renames when parent rename throws', async () => {
-    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>)
-      .mockRejectedValueOnce(new Error('API error'));
+    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('API error'),
+    );
 
     const list = [
       { oldName: 'dev/react', newName: 'archive/react' },
@@ -233,8 +220,10 @@ describe('executeRenames', () => {
   });
 
   it('skips deeply nested descendants on failure', async () => {
-    (logseq.Editor.getPage as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ id: 1, name: 'target' }); // parent exists
+    (logseq.Editor.getPage as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      id: 1,
+      name: 'target',
+    }); // parent exists
 
     const list = [
       { oldName: 'a/b', newName: 'x' },

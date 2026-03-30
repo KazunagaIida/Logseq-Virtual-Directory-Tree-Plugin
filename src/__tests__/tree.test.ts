@@ -1,11 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { buildTree, sortTree, propagateUpdatedAt, parseHiddenPages } from '../tree';
-import type { PageEntity, SortConfig, TreeNode } from '../types';
+import type { PageEntity, TreeNode } from '../types';
 
-function makePage(
-  name: string,
-  opts?: Partial<PageEntity>
-): PageEntity {
+function makePage(name: string, opts?: Partial<PageEntity>): PageEntity {
   return {
     id: Math.floor(Math.random() * 10000),
     uuid: crypto.randomUUID(),
@@ -51,10 +48,7 @@ describe('buildTree', () => {
   });
 
   it('groups multiple pages under the same namespace folder', () => {
-    const tree = buildTree([
-      makePage('dev/react/hooks'),
-      makePage('dev/react/state-management'),
-    ]);
+    const tree = buildTree([makePage('dev/react/hooks'), makePage('dev/react/state-management')]);
 
     expect(tree).toHaveLength(1);
     const react = tree[0].children[0];
@@ -74,10 +68,7 @@ describe('buildTree', () => {
   });
 
   it('sets type to "both" when a folder also exists as a page', () => {
-    const tree = buildTree([
-      makePage('dev/react'),
-      makePage('dev/react/hooks'),
-    ]);
+    const tree = buildTree([makePage('dev/react'), makePage('dev/react/hooks')]);
 
     const dev = tree[0];
     const react = dev.children[0];
@@ -88,10 +79,7 @@ describe('buildTree', () => {
   });
 
   it('handles case-insensitive dedup without creating duplicate nodes', () => {
-    const tree = buildTree([
-      makePage('Dev/React'),
-      makePage('dev/react/hooks'),
-    ]);
+    const tree = buildTree([makePage('Dev/React'), makePage('dev/react/hooks')]);
 
     // Only one root node for "dev"/"Dev"
     expect(tree).toHaveLength(1);
@@ -137,9 +125,7 @@ describe('buildTree', () => {
   });
 
   it('handles deep nesting (5+ levels) correctly', () => {
-    const tree = buildTree([
-      makePage('a/b/c/d/e/f'),
-    ]);
+    const tree = buildTree([makePage('a/b/c/d/e/f')]);
 
     let node = tree[0];
     const expected = ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -158,9 +144,7 @@ describe('buildTree', () => {
   });
 
   it('preserves originalName casing in displayName', () => {
-    const tree = buildTree([
-      makePage('Dev/React/Hooks'),
-    ]);
+    const tree = buildTree([makePage('Dev/React/Hooks')]);
 
     const dev = tree[0];
     expect(dev.displayName).toBe('Dev');
@@ -171,10 +155,7 @@ describe('buildTree', () => {
   });
 
   it('initializes all nodes with isExpanded = false', () => {
-    const tree = buildTree([
-      makePage('dev/react/hooks'),
-      makePage('memo'),
-    ]);
+    const tree = buildTree([makePage('dev/react/hooks'), makePage('memo')]);
 
     expect(tree[0].isExpanded).toBe(false);
     expect(tree[0].children[0].isExpanded).toBe(false);
@@ -182,10 +163,7 @@ describe('buildTree', () => {
   });
 
   it('trims spaces around namespace separators', () => {
-    const tree = buildTree([
-      makePage('dev / react / hooks'),
-      makePage('dev /typescript'),
-    ]);
+    const tree = buildTree([makePage('dev / react / hooks'), makePage('dev /typescript')]);
 
     expect(tree).toHaveLength(1);
     const dev = tree[0];
@@ -217,19 +195,14 @@ describe('buildTree', () => {
   });
 
   it('sets originalName on both-type nodes', () => {
-    const tree = buildTree([
-      makePage('dev/react'),
-      makePage('dev/react/hooks'),
-    ]);
+    const tree = buildTree([makePage('dev/react'), makePage('dev/react/hooks')]);
     const react = tree[0].children[0];
     expect(react.type).toBe('both');
     expect(react.originalName).toBe('dev/react');
   });
 
   it('preserves original page name with spaces in originalName', () => {
-    const tree = buildTree([
-      makePage('人気雑誌 /smartpass/viewer fix'),
-    ]);
+    const tree = buildTree([makePage('人気雑誌 /smartpass/viewer fix')]);
     // fullPath is trimmed (for internal use)
     const viewer = tree[0].children[0].children[0];
     expect(viewer.fullPath).toBe('人気雑誌/smartpass/viewer fix');
@@ -238,9 +211,7 @@ describe('buildTree', () => {
   });
 
   it('preserves spaces in originalName while trimming fullPath', () => {
-    const tree = buildTree([
-      makePage('a /b / c'),
-    ]);
+    const tree = buildTree([makePage('a /b / c')]);
     const leaf = tree[0].children[0].children[0];
     expect(leaf.name).toBe('c');
     expect(leaf.fullPath).toBe('a/b/c');
@@ -252,7 +223,7 @@ function makeNode(
   name: string,
   type: TreeNode['type'] = 'page',
   children: TreeNode[] = [],
-  updatedAt?: number
+  updatedAt?: number,
 ): TreeNode {
   return {
     name,
@@ -322,30 +293,25 @@ describe('sortTree with SortConfig', () => {
 
   it('sorts recursively in children', () => {
     const nodes: TreeNode[] = [
-      makeNode('dev', 'folder', [
-        makeNode('typescript'),
-        makeNode('react'),
-        makeNode('angular'),
-      ]),
+      makeNode('dev', 'folder', [makeNode('typescript'), makeNode('react'), makeNode('angular')]),
     ];
     sortTree(nodes, { key: 'name', direction: 'desc', foldersFirst: false });
     expect(nodes[0].children.map((n) => n.name)).toEqual(['typescript', 'react', 'angular']);
   });
 
   it('buildTree accepts sortConfig parameter', () => {
-    const tree = buildTree(
-      [makePage('zebra'), makePage('dev/react'), makePage('apple')],
-      { key: 'name', direction: 'desc', foldersFirst: false }
-    );
+    const tree = buildTree([makePage('zebra'), makePage('dev/react'), makePage('apple')], {
+      key: 'name',
+      direction: 'desc',
+      foldersFirst: false,
+    });
     expect(tree.map((n) => n.name)).toEqual(['zebra', 'dev', 'apple']);
   });
 });
 
 describe('propagateUpdatedAt', () => {
   it('keeps page node updatedAt as-is', () => {
-    const nodes: TreeNode[] = [
-      makeNode('memo', 'page', [], 1000),
-    ];
+    const nodes: TreeNode[] = [makeNode('memo', 'page', [], 1000)];
     propagateUpdatedAt(nodes);
     expect(nodes[0].updatedAt).toBe(1000);
   });
@@ -365,11 +331,7 @@ describe('propagateUpdatedAt', () => {
   it('propagates through deep nesting', () => {
     const nodes: TreeNode[] = [
       makeNode('a', 'folder', [
-        makeNode('b', 'folder', [
-          makeNode('c', 'folder', [
-            makeNode('leaf', 'page', [], 5000),
-          ]),
-        ]),
+        makeNode('b', 'folder', [makeNode('c', 'folder', [makeNode('leaf', 'page', [], 5000)])]),
       ]),
     ];
     propagateUpdatedAt(nodes);
@@ -391,18 +353,14 @@ describe('propagateUpdatedAt', () => {
 
   it('uses max of own and children for type both', () => {
     const nodes: TreeNode[] = [
-      makeNode('dev', 'both', [
-        makeNode('hooks', 'page', [], 1000),
-      ], 5000),
+      makeNode('dev', 'both', [makeNode('hooks', 'page', [], 1000)], 5000),
     ];
     propagateUpdatedAt(nodes);
     expect(nodes[0].updatedAt).toBe(5000);
 
     // When child is newer
     const nodes2: TreeNode[] = [
-      makeNode('dev', 'both', [
-        makeNode('hooks', 'page', [], 9000),
-      ], 2000),
+      makeNode('dev', 'both', [makeNode('hooks', 'page', [], 9000)], 2000),
     ];
     propagateUpdatedAt(nodes2);
     expect(nodes2[0].updatedAt).toBe(9000);
@@ -410,10 +368,7 @@ describe('propagateUpdatedAt', () => {
 
   it('leaves folder updatedAt as undefined when all children lack it', () => {
     const nodes: TreeNode[] = [
-      makeNode('dev', 'folder', [
-        makeNode('hooks', 'page', []),
-        makeNode('state', 'page', []),
-      ]),
+      makeNode('dev', 'folder', [makeNode('hooks', 'page', []), makeNode('state', 'page', [])]),
     ];
     propagateUpdatedAt(nodes);
     expect(nodes[0].updatedAt).toBeUndefined();
@@ -476,9 +431,7 @@ describe('sortTree with updatedAt', () => {
 
 describe('buildTree with updatedAt', () => {
   it('copies updatedAt from PageEntity to TreeNode', () => {
-    const tree = buildTree([
-      makePage('memo', { updatedAt: 5000 }),
-    ]);
+    const tree = buildTree([makePage('memo', { updatedAt: 5000 })]);
     expect(tree[0].updatedAt).toBe(5000);
   });
 
@@ -503,11 +456,8 @@ describe('buildTree with updatedAt', () => {
 
   it('sorts by updatedAt when sortConfig specifies it', () => {
     const tree = buildTree(
-      [
-        makePage('old-page', { updatedAt: 1000 }),
-        makePage('new-page', { updatedAt: 3000 }),
-      ],
-      { key: 'updatedAt', direction: 'desc', foldersFirst: false }
+      [makePage('old-page', { updatedAt: 1000 }), makePage('new-page', { updatedAt: 3000 })],
+      { key: 'updatedAt', direction: 'desc', foldersFirst: false },
     );
     expect(tree.map((n) => n.name)).toEqual(['new-page', 'old-page']);
   });
@@ -537,61 +487,50 @@ describe('parseHiddenPages', () => {
 describe('buildTree with hiddenPages', () => {
   it('hides pages matching hiddenPages list', () => {
     const hidden = new Set(['card', 'favorites', 'contents']);
-    const tree = buildTree([
-      makePage('card'),
-      makePage('Favorites'),
-      makePage('Contents'),
-      makePage('memo'),
-    ], undefined, hidden);
+    const tree = buildTree(
+      [makePage('card'), makePage('Favorites'), makePage('Contents'), makePage('memo')],
+      undefined,
+      hidden,
+    );
     expect(tree).toHaveLength(1);
     expect(tree[0].name).toBe('memo');
   });
 
   it('matches case-insensitively', () => {
     const hidden = new Set(['contents']);
-    const tree = buildTree([
-      makePage('CONTENTS'),
-      makePage('contents'),
-      makePage('Contents'),
-      makePage('memo'),
-    ], undefined, hidden);
+    const tree = buildTree(
+      [makePage('CONTENTS'), makePage('contents'), makePage('Contents'), makePage('memo')],
+      undefined,
+      hidden,
+    );
     expect(tree).toHaveLength(1);
     expect(tree[0].name).toBe('memo');
   });
 
   it('hides namespace pages whose root segment matches', () => {
     const hidden = new Set(['card']);
-    const tree = buildTree([
-      makePage('card/deck1'),
-      makePage('card/deck2'),
-      makePage('memo'),
-    ], undefined, hidden);
+    const tree = buildTree(
+      [makePage('card/deck1'), makePage('card/deck2'), makePage('memo')],
+      undefined,
+      hidden,
+    );
     expect(tree).toHaveLength(1);
     expect(tree[0].name).toBe('memo');
   });
 
   it('does not hide pages when hiddenPages is undefined', () => {
-    const tree = buildTree([
-      makePage('card'),
-      makePage('memo'),
-    ], undefined, undefined);
+    const tree = buildTree([makePage('card'), makePage('memo')], undefined, undefined);
     expect(tree).toHaveLength(2);
   });
 
   it('does not hide pages when hiddenPages is empty set', () => {
-    const tree = buildTree([
-      makePage('card'),
-      makePage('memo'),
-    ], undefined, new Set());
+    const tree = buildTree([makePage('card'), makePage('memo')], undefined, new Set());
     expect(tree).toHaveLength(2);
   });
 
   it('handles spaces around / in page name for hidden root matching', () => {
     const hidden = new Set(['favorites']);
-    const tree = buildTree([
-      makePage('Favorites / sub-page'),
-      makePage('memo'),
-    ], undefined, hidden);
+    const tree = buildTree([makePage('Favorites / sub-page'), makePage('memo')], undefined, hidden);
     expect(tree).toHaveLength(1);
     expect(tree[0].name).toBe('memo');
   });

@@ -7,11 +7,7 @@ interface CreatePageDialogProps {
   onCancel: () => void;
 }
 
-export function CreatePageDialog({
-  folderPrefix,
-  onConfirm,
-  onCancel,
-}: CreatePageDialogProps) {
+export function CreatePageDialog({ folderPrefix, onConfirm, onCancel }: CreatePageDialogProps) {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);

@@ -31,13 +31,12 @@ function findNode(nodes: TreeNode[], fullPath: string): TreeNode | null {
   return null;
 }
 
-
 export function useDragDrop(
   tree: TreeNode[],
   onComplete: () => void,
   selectedPaths?: Set<string>,
   clearSelection?: () => void,
-  onDelayedReload?: () => void
+  onDelayedReload?: () => void,
 ) {
   const dragSourcesRef = useRef<TreeNode[]>([]);
   const [state, setState] = useState<DragDropState>({
@@ -54,16 +53,11 @@ export function useDragDrop(
     resultDialog: { visible: false, result: null },
   });
 
-  const canDropAny = useCallback(
-    (sources: TreeNode[], targetFullPath: string): boolean => {
-      if (targetFullPath === '__root__') return true;
-      // At least one source can be dropped
-      return sources.some(
-        (s) => !checkCircularDrop(s.fullPath, targetFullPath)
-      );
-    },
-    []
-  );
+  const canDropAny = useCallback((sources: TreeNode[], targetFullPath: string): boolean => {
+    if (targetFullPath === '__root__') return true;
+    // At least one source can be dropped
+    return sources.some((s) => !checkCircularDrop(s.fullPath, targetFullPath));
+  }, []);
 
   const onDragStart = useCallback(
     (node: TreeNode, e: DragEvent) => {
@@ -96,7 +90,7 @@ export function useDragDrop(
         setState((prev) => ({ ...prev, sourceCount: 1 }));
       }
     },
-    [tree, selectedPaths, clearSelection]
+    [tree, selectedPaths, clearSelection],
   );
 
   const onDragOver = useCallback(
@@ -114,7 +108,7 @@ export function useDragDrop(
         e.dataTransfer.dropEffect = 'none';
       }
     },
-    [canDropAny]
+    [canDropAny],
   );
 
   const onDragLeave = useCallback(() => {
@@ -171,7 +165,7 @@ export function useDragDrop(
         },
       }));
     },
-    [clearSelection]
+    [clearSelection],
   );
 
   const confirmMove = useCallback(async () => {
@@ -187,7 +181,9 @@ export function useDragDrop(
     // Try re-index
     try {
       await logseq.App.invokeExternalCommand(
-        'logseq.search/re-index' as any
+        'logseq.search/re-index' as unknown as Parameters<
+          typeof logseq.App.invokeExternalCommand
+        >[0],
       );
     } catch {
       // re-index not critical

@@ -6,7 +6,7 @@ function makeNode(
   fullPath: string,
   type: TreeNode['type'] = 'page',
   children: TreeNode[] = [],
-  isExpanded = false
+  isExpanded = false,
 ): TreeNode {
   const parts = fullPath.split('/');
   return {
@@ -22,17 +22,11 @@ function makeNode(
 describe('hasTreeChanged', () => {
   it('returns false for identical trees', () => {
     const tree = [
-      makeNode('dev', 'folder', [
-        makeNode('dev/react', 'page'),
-        makeNode('dev/vue', 'page'),
-      ]),
+      makeNode('dev', 'folder', [makeNode('dev/react', 'page'), makeNode('dev/vue', 'page')]),
       makeNode('memo', 'page'),
     ];
     const same = [
-      makeNode('dev', 'folder', [
-        makeNode('dev/react', 'page'),
-        makeNode('dev/vue', 'page'),
-      ]),
+      makeNode('dev', 'folder', [makeNode('dev/react', 'page'), makeNode('dev/vue', 'page')]),
       makeNode('memo', 'page'),
     ];
     expect(hasTreeChanged(tree, same)).toBe(false);

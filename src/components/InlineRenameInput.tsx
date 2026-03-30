@@ -7,11 +7,7 @@ interface InlineRenameInputProps {
   onCancel: () => void;
 }
 
-export function InlineRenameInput({
-  currentName,
-  onConfirm,
-  onCancel,
-}: InlineRenameInputProps) {
+export function InlineRenameInput({ currentName, onConfirm, onCancel }: InlineRenameInputProps) {
   const [value, setValue] = useState(currentName);
   const inputRef = useRef<HTMLInputElement>(null);
 

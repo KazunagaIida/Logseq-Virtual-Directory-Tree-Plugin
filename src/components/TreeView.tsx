@@ -82,27 +82,52 @@ export function TreeView({
       <div class="tree-panel-header">
         <span class="tree-panel-title">Virtual Directory</span>
         {onCreatePage && (
-          <button class="tree-panel-btn" onClick={onCreatePage} title="Create new page" data-testid="create-btn">
+          <button
+            class="tree-panel-btn"
+            onClick={onCreatePage}
+            title="Create new page"
+            data-testid="create-btn"
+          >
             <span dangerouslySetInnerHTML={{ __html: ICON_CREATE }} />
           </button>
         )}
         {onToggleSortMenu && (
-          <button class="tree-panel-btn" onClick={onToggleSortMenu} title="Sort" data-testid="sort-btn">
+          <button
+            class="tree-panel-btn"
+            onClick={onToggleSortMenu}
+            title="Sort"
+            data-testid="sort-btn"
+          >
             <span dangerouslySetInnerHTML={{ __html: ICON_SORT }} />
           </button>
         )}
         {onExpandAll && (
-          <button class="tree-panel-btn" onClick={onExpandAll} title="Expand all" data-testid="expand-all-btn">
+          <button
+            class="tree-panel-btn"
+            onClick={onExpandAll}
+            title="Expand all"
+            data-testid="expand-all-btn"
+          >
             <span dangerouslySetInnerHTML={{ __html: ICON_EXPAND }} />
           </button>
         )}
         {onCollapseAll && (
-          <button class="tree-panel-btn" onClick={onCollapseAll} title="Collapse all" data-testid="collapse-all-btn">
+          <button
+            class="tree-panel-btn"
+            onClick={onCollapseAll}
+            title="Collapse all"
+            data-testid="collapse-all-btn"
+          >
             <span dangerouslySetInnerHTML={{ __html: ICON_COLLAPSE }} />
           </button>
         )}
         {onReveal && (
-          <button class="tree-panel-btn" onClick={onReveal} title="Reveal current page" data-testid="reveal-btn">
+          <button
+            class="tree-panel-btn"
+            onClick={onReveal}
+            title="Reveal current page"
+            data-testid="reveal-btn"
+          >
             <span dangerouslySetInnerHTML={{ __html: ICON_REVEAL }} />
           </button>
         )}
@@ -113,11 +138,7 @@ export function TreeView({
         )}
       </div>
       {showSortMenu && sortConfig && onSortChange && onCloseSortMenu && (
-        <SortMenu
-          config={sortConfig}
-          onChange={onSortChange}
-          onClose={onCloseSortMenu}
-        />
+        <SortMenu config={sortConfig} onChange={onSortChange} onClose={onCloseSortMenu} />
       )}
       <div
         class={`tree-container${isRootDropTarget ? ' tree-root-drop-target' : ''}`}

@@ -57,8 +57,7 @@ export function ConfirmDialog({
         <div class="dialog-body">
           {isMulti ? (
             <div class="dialog-field">
-              <strong>Items:</strong>{' '}
-              {sources.map((s) => s.displayName).join(', ')}
+              <strong>Items:</strong> {sources.map((s) => s.displayName).join(', ')}
             </div>
           ) : (
             <div class="dialog-field">
@@ -91,11 +90,7 @@ export function ConfirmDialog({
                   </div>
                 );
               })}
-              {remaining > 0 && (
-                <div class="dialog-rename-more">
-                  ... ({remaining} more)
-                </div>
-              )}
+              {remaining > 0 && <div class="dialog-rename-more">... ({remaining} more)</div>}
             </div>
           )}
         </div>
@@ -112,7 +107,7 @@ export function ConfirmDialog({
   );
 }
 
-interface LoadingDialogProps {}
+type LoadingDialogProps = Record<string, never>;
 
 export function LoadingDialog(_props: LoadingDialogProps) {
   return (
@@ -146,14 +141,15 @@ export function ResultDialog({ result, onClose }: ResultDialogProps) {
             ))}
             {result.failed.map((entry) => (
               <div key={entry.oldName} class="dialog-rename-item dialog-failure">
-                <div>❌ {entry.oldName} → {entry.newName}</div>
+                <div>
+                  ❌ {entry.oldName} → {entry.newName}
+                </div>
                 <div class="dialog-error-detail">→ {entry.error}</div>
               </div>
             ))}
           </div>
           <div class="dialog-reindex-hint">
-            If pages look incorrect, please re-index manually:
-            Settings → Advanced → Re-index
+            If pages look incorrect, please re-index manually: Settings → Advanced → Re-index
           </div>
         </div>
         <div class="dialog-actions">

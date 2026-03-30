@@ -7,11 +7,7 @@ const CONTENT_SELECTORS = [
 ];
 
 // Candidate selectors for Logseq's toolbar/header.
-const TOOLBAR_SELECTORS = [
-  '.cp__header',
-  '#head',
-  'header',
-];
+const TOOLBAR_SELECTORS = ['.cp__header', '#head', 'header'];
 
 let activeElement: HTMLElement | null = null;
 let originalMarginRight: string = '';

@@ -37,34 +37,28 @@ function collectPages(node: TreeNode): PageInfo[] {
 // Build a list of renames needed to move sourceNode into targetFolder.
 // If targetFolder is empty string, it means moving to root (namespace removal).
 // Uses fullPath (trimmed) for prefix matching, originalName for API calls.
-export function buildRenameList(
-  sourceNode: TreeNode,
-  targetFolder: string
-): RenameEntry[] {
+export function buildRenameList(sourceNode: TreeNode, targetFolder: string): RenameEntry[] {
   const pages = collectPages(sourceNode);
   const sourcePrefix = sourceNode.fullPath;
 
-  return pages
-    .map(({ fullPath, originalName }) => {
-      // Use trimmed fullPath for prefix matching (consistent with tree structure)
-      const suffix = fullPath.slice(sourcePrefix.length); // e.g. "" or "/hooks"
-      const newBase =
-        targetFolder === ''
-          ? sourceNode.name
-          : targetFolder + '/' + sourceNode.name;
-      const newName = newBase + suffix;
-      // Use originalName for the API call (preserves spaces around /)
-      return { oldName: originalName, newName };
-    })
-    // Filter out no-op renames (e.g. dropping onto a sibling in the same folder)
-    .filter((entry) => entry.oldName.toLowerCase() !== entry.newName.toLowerCase());
+  return (
+    pages
+      .map(({ fullPath, originalName }) => {
+        // Use trimmed fullPath for prefix matching (consistent with tree structure)
+        const suffix = fullPath.slice(sourcePrefix.length); // e.g. "" or "/hooks"
+        const newBase =
+          targetFolder === '' ? sourceNode.name : targetFolder + '/' + sourceNode.name;
+        const newName = newBase + suffix;
+        // Use originalName for the API call (preserves spaces around /)
+        return { oldName: originalName, newName };
+      })
+      // Filter out no-op renames (e.g. dropping onto a sibling in the same folder)
+      .filter((entry) => entry.oldName.toLowerCase() !== entry.newName.toLowerCase())
+  );
 }
 
 // Build rename lists for multiple source nodes, merge, and deduplicate.
-export function buildRenameListMulti(
-  sourceNodes: TreeNode[],
-  targetFolder: string
-): RenameEntry[] {
+export function buildRenameListMulti(sourceNodes: TreeNode[], targetFolder: string): RenameEntry[] {
   const seen = new Set<string>();
   const result: RenameEntry[] = [];
 
@@ -85,9 +79,7 @@ export function buildRenameListMulti(
 // Uses logseq.Editor.getPage to check for conflicts and renamePage to perform the rename.
 // When a rename fails, all descendant renames (oldName starting with failedOldName/) are skipped
 // to prevent orphaned children.
-export async function executeRenames(
-  renameList: RenameEntry[]
-): Promise<RenameResult> {
+export async function executeRenames(renameList: RenameEntry[]): Promise<RenameResult> {
   const succeeded: RenameEntry[] = [];
   const failed: Array<RenameEntry & { error: string }> = [];
   // Track failed old-name prefixes so descendant renames are skipped
@@ -97,8 +89,8 @@ export async function executeRenames(
     const entry = renameList[i];
 
     // Skip if a parent rename already failed
-    const skippedByParent = failedPrefixes.some(
-      (prefix) => entry.oldName.toLowerCase().startsWith(prefix)
+    const skippedByParent = failedPrefixes.some((prefix) =>
+      entry.oldName.toLowerCase().startsWith(prefix),
     );
     if (skippedByParent) {
       failed.push({
