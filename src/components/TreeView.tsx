@@ -80,7 +80,6 @@ export function TreeView({
   return (
     <>
       <div class="tree-panel-header">
-        <span class="tree-panel-title">Virtual Directory</span>
         {onCreatePage && (
           <button
             class="tree-panel-btn"

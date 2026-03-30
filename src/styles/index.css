@@ -71,15 +71,6 @@ html, body, #app {
   background: var(--vdt-bg);
 }
 
-.tree-panel-title {
-  flex: 1;
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--vdt-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 .tree-panel-btn {
   background: none;
   border: none;
