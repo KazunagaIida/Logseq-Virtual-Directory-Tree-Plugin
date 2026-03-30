@@ -147,12 +147,17 @@ npm install
 | `npm run build` | Build for production |
 | `npm test` | Run all tests |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check formatting without writing |
 
 ### Tech Stack
 
 - TypeScript, Preact, Vite
 - HTML5 Drag and Drop API
+- Linting: ESLint, Prettier
 - Testing: Vitest, jsdom, @testing-library/preact
+- CI: GitHub Actions (lint, format, test, build on every PR)
 
 ### Project Structure
 
@@ -191,6 +196,8 @@ Pull requests are welcome! However, please note:
 - This is a personal project maintained in my spare time
 - Response times may vary — please be patient
 - Not all PRs or feature requests may be accepted
+
+Please ensure your PR passes all CI checks (lint, format, tests) before requesting a review.
 
 ## License
 
