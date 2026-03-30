@@ -74,20 +74,22 @@ memo
 ### Drag & Drop
 
 - **Drag a page** onto a folder to move it (renames the page with the new namespace)
+- **Drag a page onto another page** to nest it underneath (the target page becomes a folder)
 - **Drag a folder** onto another folder to move the entire subtree (bulk renames all child pages)
-- **Drag multiple selected items** to move them all at once
+- **Drag multiple selected items** to move them all at once (a badge shows the count of items being moved)
 - **Drag to the empty area** below the tree to move to root (removes namespace prefix)
 - A confirmation dialog shows all affected pages before any rename is executed
 - If some renames fail, a result dialog shows which succeeded and which failed
+- If a parent rename fails, descendant renames are automatically skipped to prevent orphaned pages
 
 ### Context Menu
 
 Right-click any node to access:
 
-- **Rename** -- Inline rename of the page or folder
-- **Delete** -- Delete the page (with confirmation)
-- **Copy path** -- Copy the full namespace path to clipboard
-- **Create page here** -- Create a new page under this folder
+- **Rename** -- Inline rename of the page or folder (available for pages and page-folders)
+- **Delete** -- Delete the page with a confirmation dialog (available for pages and page-folders)
+- **Copy path** -- Copy the original page name to clipboard
+- **Create page here** -- Create a new child page under a folder (available for folders and page-folders)
 
 ### Sorting
 
@@ -95,6 +97,7 @@ Click the sort icon in the header toolbar to choose a sort order:
 
 - **Name (A-Z / Z-A)** -- Alphabetical sorting
 - **Updated (Newest / Oldest)** -- Sort by last-modified date (folder dates are derived from their most recently updated descendant)
+  - **Note:** Logseq stores `updatedAt` based on file-system timestamps, not git history. Re-indexing the graph rewrites every page file, which resets all timestamps to the current time and effectively scrambles the sort order. This is a Logseq limitation, not a plugin bug.
 - **Folders first** -- Toggle whether folders appear before pages
 
 ### Toolbar Actions
@@ -107,11 +110,21 @@ The header toolbar provides quick access to:
 - **Expand All / Collapse All** -- Expand or collapse every folder in the tree
 - **Close** -- Hide the panel
 
+## Settings
+
+Open **Plugins > Virtual Directory Tree > Settings** to configure the plugin.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Hidden pages** | `card, Favorites, Contents` | Comma-separated list of root-level page names to hide from the tree. Case-insensitive. A name hides the page itself and all pages under it (e.g. `card` hides `card`, `card/deck1`, etc.). |
+
 ## Known Limitations
 
 - **File graph only** -- This plugin works with Logseq file-based graphs. DB graphs are not supported.
-- **No undo** -- Rename operations cannot be undone through the plugin. Use Logseq's git versioning if you need to revert.
+- **Journal pages excluded** -- Journal pages are automatically excluded from the tree and cannot be managed through this plugin.
+- **No undo** -- Rename and delete operations cannot be undone through the plugin. Use Logseq's git versioning if you need to revert.
 - **API timing** -- A small delay is inserted between rename operations to avoid overwhelming Logseq's API.
+- **Page names with spaces around `/`** -- Logseq allows page names like `A / B`. The tree displays these with trimmed segments but preserves the original name for all API operations.
 
 ## Development
 
