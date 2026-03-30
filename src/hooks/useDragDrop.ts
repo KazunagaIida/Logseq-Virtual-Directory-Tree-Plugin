@@ -31,6 +31,7 @@ function findNode(nodes: TreeNode[], fullPath: string): TreeNode | null {
   return null;
 }
 
+
 export function useDragDrop(
   tree: TreeNode[],
   onComplete: () => void,
@@ -140,7 +141,10 @@ export function useDragDrop(
         return !checkCircularDrop(s.fullPath, targetFullPath);
       });
 
-      if (validSources.length === 0) return;
+      if (validSources.length === 0) {
+        dragSourcesRef.current = [];
+        return;
+      }
 
       const renameList =
         validSources.length === 1
@@ -148,6 +152,10 @@ export function useDragDrop(
           : buildRenameListMulti(validSources, targetPath);
 
       dragSourcesRef.current = [];
+
+      // All renames are no-ops (e.g. dropping onto own parent folder)
+      if (renameList.length === 0) return;
+
       clearSelection?.();
       expandIframeForDialog();
       setState((prev) => ({

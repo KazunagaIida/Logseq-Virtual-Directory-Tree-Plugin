@@ -109,10 +109,8 @@ export function TreeNodeComponent({
   };
 
   const handleDragOver = (e: DragEvent) => {
-    if (isFolder) {
-      e.stopPropagation();
-      onDragOver?.(node.fullPath, e);
-    }
+    e.stopPropagation();
+    onDragOver?.(node.fullPath, e);
   };
 
   const handleDragLeave = () => {
@@ -120,9 +118,8 @@ export function TreeNodeComponent({
   };
 
   const handleDrop = (e: DragEvent) => {
-    if (isFolder) {
-      onDrop?.(node.fullPath, e);
-    }
+    e.stopPropagation();
+    onDrop?.(node.fullPath, e);
   };
 
   const renderIcon = () => {

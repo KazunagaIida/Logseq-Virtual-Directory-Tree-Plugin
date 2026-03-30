@@ -274,4 +274,186 @@ describe('useDragDrop', () => {
       expect(oldNames).not.toContain('dev');
     });
   });
+
+  describe('drop onto leaf page (nests under target)', () => {
+    it('dropping onto a nested leaf nests source under that leaf', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[2]; // memo (root-level page)
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto cooking/sous-vide (leaf page) → nests under it
+      act(() => {
+        result.current.onDrop('cooking/sous-vide', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(true);
+      expect(result.current.state.confirmDialog.targetPath).toBe('cooking/sous-vide');
+      expect(result.current.state.confirmDialog.renameList).toEqual([
+        { oldName: 'memo', newName: 'cooking/sous-vide/memo' },
+      ]);
+    });
+
+    it('dropping onto a top-level leaf nests source under it', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto memo (top-level page) → nests under memo
+      act(() => {
+        result.current.onDrop('memo', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(true);
+      expect(result.current.state.confirmDialog.targetPath).toBe('memo');
+      expect(result.current.state.confirmDialog.renameList).toEqual([
+        { oldName: 'dev/react/hooks', newName: 'memo/hooks' },
+      ]);
+    });
+
+    it('dragOver on a leaf page highlights the leaf itself', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[2]; // memo
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      const dragOverEvent = makeDragEvent();
+      act(() => {
+        result.current.onDragOver('cooking/sous-vide', dragOverEvent);
+      });
+
+      expect(dragOverEvent.dataTransfer!.dropEffect).toBe('move');
+      expect(result.current.state.dropTarget).toBe('cooking/sous-vide');
+    });
+
+    it('dropping onto a leaf in a different folder nests under that leaf', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto dev/typescript/generics (leaf) → nests under it
+      act(() => {
+        result.current.onDrop('dev/typescript/generics', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(true);
+      expect(result.current.state.confirmDialog.renameList).toEqual([
+        { oldName: 'dev/react/hooks', newName: 'dev/typescript/generics/hooks' },
+      ]);
+    });
+
+    it('dropping onto own parent folder is a no-op (no dialog)', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto dev/react (parent folder) → newName = dev/react/hooks = oldName → no-op
+      act(() => {
+        result.current.onDrop('dev/react', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(false);
+    });
+
+    it('clears drag sources after no-op drop (prevents stale ref leak)', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // No-op drop: onto own parent
+      act(() => {
+        result.current.onDrop('dev/react', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(false);
+
+      // Simulate what the root handler would do if the event had bubbled.
+      act(() => {
+        result.current.onDrop('__root__', makeDragEvent());
+      });
+
+      // Must still be no dialog — sources were cleared
+      expect(result.current.state.confirmDialog.visible).toBe(false);
+    });
+
+    it('clears drag sources after circular drop rejection', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[0]; // dev
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto dev/react (descendant) → circular → validSources empty
+      act(() => {
+        result.current.onDrop('dev/react', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(false);
+
+      // Subsequent root drop must not pick up stale sources
+      act(() => {
+        result.current.onDrop('__root__', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(false);
+    });
+
+    it('rejects dropping parent onto its own descendant leaf', () => {
+      const { result } = renderHook(() => useDragDrop(tree, onComplete));
+      const sourceNode = tree[0]; // dev
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // dev/react/hooks is a descendant of dev → circular
+      const dragOverEvent = makeDragEvent();
+      act(() => {
+        result.current.onDragOver('dev/react/hooks', dragOverEvent);
+      });
+
+      expect(dragOverEvent.dataTransfer!.dropEffect).toBe('none');
+    });
+
+    it('multi-select drop onto a leaf nests all sources under it', () => {
+      const selected = new Set(['dev/react/hooks', 'memo']);
+      const clearSel = vi.fn();
+      const { result } = renderHook(() =>
+        useDragDrop(tree, onComplete, selected, clearSel)
+      );
+      const sourceNode = tree[0].children[0].children[0]; // dev/react/hooks
+
+      act(() => {
+        result.current.onDragStart(sourceNode, makeDragEvent());
+      });
+
+      // Drop onto cooking/sous-vide (leaf)
+      act(() => {
+        result.current.onDrop('cooking/sous-vide', makeDragEvent());
+      });
+
+      expect(result.current.state.confirmDialog.visible).toBe(true);
+      expect(result.current.state.confirmDialog.targetPath).toBe('cooking/sous-vide');
+      const oldNames = result.current.state.confirmDialog.renameList.map((r) => r.oldName);
+      expect(oldNames).toContain('dev/react/hooks');
+      expect(oldNames).toContain('memo');
+    });
+  });
 });

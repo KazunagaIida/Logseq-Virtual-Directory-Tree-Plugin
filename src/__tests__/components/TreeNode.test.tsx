@@ -131,6 +131,40 @@ describe('TreeNodeComponent', () => {
     expect(onToggle).not.toHaveBeenCalled();
   });
 
+  it('calls stopPropagation on drop event for page nodes', () => {
+    const node = makeNode({ fullPath: 'memo', type: 'page' });
+    const onDrop = vi.fn();
+    const { getByTestId } = render(
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} onDrop={onDrop} />
+    );
+
+    const row = getByTestId('tree-node-memo');
+    const dropEvent = new Event('drop', { bubbles: true }) as any;
+    dropEvent.stopPropagation = vi.fn();
+    dropEvent.dataTransfer = { dropEffect: 'none' };
+    row.dispatchEvent(dropEvent);
+
+    expect(dropEvent.stopPropagation).toHaveBeenCalled();
+    expect(onDrop).toHaveBeenCalledWith('memo', expect.anything());
+  });
+
+  it('calls stopPropagation on drop event for folder nodes', () => {
+    const child = makeNode({ fullPath: 'dev/hooks', type: 'page' });
+    const node = makeNode({ fullPath: 'dev', type: 'folder', children: [child], isExpanded: false });
+    const onDrop = vi.fn();
+    const { getByTestId } = render(
+      <TreeNodeComponent node={node} depth={0} onToggle={onToggle} onNavigate={onNavigate} onDrop={onDrop} />
+    );
+
+    const row = getByTestId('tree-node-dev');
+    const dropEvent = new Event('drop', { bubbles: true }) as any;
+    dropEvent.stopPropagation = vi.fn();
+    dropEvent.dataTransfer = { dropEffect: 'none' };
+    row.dispatchEvent(dropEvent);
+
+    expect(dropEvent.stopPropagation).toHaveBeenCalled();
+  });
+
   it('applies correct indentation based on depth', () => {
     const node = makeNode({ fullPath: 'deep/node', type: 'page' });
 

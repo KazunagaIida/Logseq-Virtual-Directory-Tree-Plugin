@@ -27,6 +27,30 @@ describe('buildRenameList', () => {
     ]);
   });
 
+  it('filters out no-op renames when target folder is the same as source parent', () => {
+    // Dropping dev/react/hooks onto sibling in dev/react → target folder is dev/react
+    const node = makeNode('dev/react/hooks', 'page');
+    const list = buildRenameList(node, 'dev/react');
+    expect(list).toEqual([]);
+  });
+
+  it('filters out no-op renames case-insensitively', () => {
+    const node = makeNode('Dev/React/Hooks', 'page');
+    node.originalName = 'Dev/React/Hooks';
+    const list = buildRenameList(node, 'dev/react');
+    expect(list).toEqual([]);
+  });
+
+  it('filters out no-op entries in a folder move while keeping real renames', () => {
+    // A 'both' node at dev/react moved to dev → dev/react stays the same (no-op),
+    // but dev/react/hooks → dev/react/hooks is also no-op. All filtered.
+    const node = makeNode('dev/react', 'both', [
+      makeNode('dev/react/hooks', 'page'),
+    ]);
+    const list = buildRenameList(node, 'dev');
+    expect(list).toEqual([]);
+  });
+
   it('generates renames for all child pages of a folder', () => {
     const node = makeNode('dev/react', 'folder', [
       makeNode('dev/react/hooks', 'page'),
@@ -153,6 +177,74 @@ describe('executeRenames', () => {
     expect(logseq.Editor.renamePage).toHaveBeenCalledTimes(2);
     expect(logseq.Editor.renamePage).toHaveBeenCalledWith('a', 'b');
     expect(logseq.Editor.renamePage).toHaveBeenCalledWith('c', 'd');
+  });
+
+  it('skips descendant renames when parent rename fails (already exists)', async () => {
+    // Parent exists → fails; child should be skipped
+    (logseq.Editor.getPage as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ id: 1, name: 'target' }); // parent exists
+
+    const list = [
+      { oldName: 'TODOs/2026-02-10', newName: '2026-02-10' },
+      { oldName: 'TODOs/2026-02-10/TODO', newName: '2026-02-10/TODO' },
+    ];
+    const result = await executeRenames(list);
+    expect(result.succeeded).toHaveLength(0);
+    expect(result.failed).toHaveLength(2);
+    expect(result.failed[0].error).toContain('already exists');
+    expect(result.failed[1].error).toBe('Skipped because parent rename failed');
+    // Child's renamePage should never be called
+    expect(logseq.Editor.renamePage).not.toHaveBeenCalled();
+  });
+
+  it('skips descendant renames when parent rename throws', async () => {
+    (logseq.Editor.renamePage as ReturnType<typeof vi.fn>)
+      .mockRejectedValueOnce(new Error('API error'));
+
+    const list = [
+      { oldName: 'dev/react', newName: 'archive/react' },
+      { oldName: 'dev/react/hooks', newName: 'archive/react/hooks' },
+      { oldName: 'dev/react/state', newName: 'archive/react/state' },
+    ];
+    const result = await executeRenames(list);
+    expect(result.succeeded).toHaveLength(0);
+    expect(result.failed).toHaveLength(3);
+    expect(result.failed[0].error).toBe('API error');
+    expect(result.failed[1].error).toBe('Skipped because parent rename failed');
+    expect(result.failed[2].error).toBe('Skipped because parent rename failed');
+    expect(logseq.Editor.renamePage).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not skip unrelated renames when one fails', async () => {
+    // First rename fails, but second is unrelated and should proceed
+    (logseq.Editor.getPage as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ id: 1, name: 'cooking' }) // exists
+      .mockResolvedValueOnce(null); // does not exist
+
+    const list = [
+      { oldName: 'dev/react', newName: 'cooking' },
+      { oldName: 'memo', newName: 'archive/memo' },
+    ];
+    const result = await executeRenames(list);
+    expect(result.succeeded).toHaveLength(1);
+    expect(result.succeeded[0].oldName).toBe('memo');
+    expect(result.failed).toHaveLength(1);
+    expect(result.failed[0].oldName).toBe('dev/react');
+  });
+
+  it('skips deeply nested descendants on failure', async () => {
+    (logseq.Editor.getPage as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({ id: 1, name: 'target' }); // parent exists
+
+    const list = [
+      { oldName: 'a/b', newName: 'x' },
+      { oldName: 'a/b/c', newName: 'x/c' },
+      { oldName: 'a/b/c/d', newName: 'x/c/d' },
+    ];
+    const result = await executeRenames(list);
+    expect(result.succeeded).toHaveLength(0);
+    expect(result.failed).toHaveLength(3);
+    expect(logseq.Editor.renamePage).not.toHaveBeenCalled();
   });
 
   it('waits between renames (sleep mock verification)', async () => {
