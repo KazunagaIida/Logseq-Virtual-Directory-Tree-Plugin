@@ -2,6 +2,16 @@
   "name": "logseq-virtual-directory-tree",
   "version": "0.1.0",
   "description": "Virtual directory tree view using Logseq namespaces",
+  "author": "kiida",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KazunagaIida/Logseq-Virtual-Directory-Tree-Plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KazunagaIida/Logseq-Virtual-Directory-Tree-Plugin/issues"
+  },
+  "homepage": "https://github.com/KazunagaIida/Logseq-Virtual-Directory-Tree-Plugin",
   "main": "dist/index.html",
   "logseq": {
     "id": "virtual-directory-tree",
