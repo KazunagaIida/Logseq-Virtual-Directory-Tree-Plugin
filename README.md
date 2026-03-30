@@ -2,6 +2,8 @@
 
 A Logseq plugin that interprets namespace-separated page names (e.g. `dev/react/hooks`) as virtual directories and provides a file-explorer-style tree UI in the sidebar.
 
+![Main View](docs/images/main.png)
+
 ## Features
 
 - **Tree View** -- Visualize your namespaced pages as a folder/file tree in a side panel
@@ -73,6 +75,8 @@ memo
 
 ### Drag & Drop
 
+![Drag and Drop](docs/images/drag-and-drop.png)
+
 - **Drag a page** onto a folder to move it (renames the page with the new namespace)
 - **Drag a page onto another page** to nest it underneath (the target page becomes a folder)
 - **Drag a folder** onto another folder to move the entire subtree (bulk renames all child pages)
@@ -84,6 +88,8 @@ memo
 
 ### Context Menu
 
+![Context Menu](docs/images/right-click.png)
+
 Right-click any node to access:
 
 - **Rename** -- Inline rename of the page or folder (available for pages and page-folders)
@@ -92,6 +98,8 @@ Right-click any node to access:
 - **Create page here** -- Create a new child page under a folder (available for folders and page-folders)
 
 ### Sorting
+
+![Sort Menu](docs/images/sort.png)
 
 Click the sort icon in the header toolbar to choose a sort order:
 
