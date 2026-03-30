@@ -9,6 +9,7 @@ const mockLogseq = {
     getPage: vi.fn().mockResolvedValue(null),
     getCurrentPage: vi.fn().mockResolvedValue(null),
     createPage: vi.fn().mockResolvedValue(undefined),
+    appendBlockInPage: vi.fn().mockResolvedValue(undefined),
     deletePage: vi.fn().mockResolvedValue(undefined),
   },
   App: {
