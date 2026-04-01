@@ -1,16 +1,10 @@
-// Candidate selectors for Logseq's main content container.
-const CONTENT_SELECTORS = [
-  '#main-content-container',
-  '.cp__sidebar-main-content',
-  '#left-container',
-  '#app-container',
-];
-
 // Candidate selectors for Logseq's toolbar/header.
 const TOOLBAR_SELECTORS = ['.cp__header', '#head', 'header'];
 
-let activeElement: HTMLElement | null = null;
-let originalMarginRight: string = '';
+// Default toolbar height when DOM detection fails (e.g. sandboxed iframe in release mode).
+const DEFAULT_TOOLBAR_HEIGHT = 48;
+
+const STYLE_KEY = 'vdt-main-content-adjust';
 
 function getParentDoc(): Document | null {
   try {
@@ -20,46 +14,31 @@ function getParentDoc(): Document | null {
   }
 }
 
-function findContentContainer(): HTMLElement | null {
-  const doc = getParentDoc();
-  if (!doc) return null;
-
-  for (const selector of CONTENT_SELECTORS) {
-    const el = doc.querySelector<HTMLElement>(selector);
-    if (el) return el;
-  }
-  return null;
-}
-
 // Detect toolbar height from parent document
 export function getToolbarHeight(): number {
   try {
     const doc = getParentDoc();
-    if (!doc) return 0;
-
-    for (const selector of TOOLBAR_SELECTORS) {
-      const el = doc.querySelector<HTMLElement>(selector);
-      if (el) return el.getBoundingClientRect().height;
+    if (doc) {
+      for (const selector of TOOLBAR_SELECTORS) {
+        const el = doc.querySelector<HTMLElement>(selector);
+        if (el) return el.getBoundingClientRect().height;
+      }
     }
   } catch {
-    // Fail silently
+    // cross-origin access blocked in sandboxed iframe
   }
-  return 0;
+  return DEFAULT_TOOLBAR_HEIGHT;
 }
 
 export function adjustMainContent(panelWidth: number): void {
-  try {
-    const el = findContentContainer();
-    if (!el) return;
-
-    if (!activeElement) {
-      originalMarginRight = el.style.marginRight;
-    }
-    activeElement = el;
-    el.style.marginRight = `${panelWidth}px`;
-  } catch {
-    // Fail silently
-  }
+  logseq.provideStyle({
+    key: STYLE_KEY,
+    style: `
+      #main-content-container {
+        margin-right: ${panelWidth}px !important;
+      }
+    `,
+  });
 }
 
 // Expand iframe to full screen for dialogs, keep panel at 280px via CSS
@@ -104,13 +83,5 @@ export function shrinkIframeToPanel(): void {
 }
 
 export function resetMainContent(): void {
-  try {
-    if (activeElement) {
-      activeElement.style.marginRight = originalMarginRight;
-      activeElement = null;
-      originalMarginRight = '';
-    }
-  } catch {
-    // Fail silently
-  }
+  logseq.provideStyle({ key: STYLE_KEY, style: '/* vdt-reset */' });
 }

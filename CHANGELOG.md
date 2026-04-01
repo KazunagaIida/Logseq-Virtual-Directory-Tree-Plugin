@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.3
+
+### Bug Fixes
+
+- Fix panel layout not working in release mode (non-developer mode)
+  - Use `logseq.provideStyle()` API instead of direct DOM access for main content margin adjustment (cross-origin iframe restriction)
+  - Add fallback toolbar height (48px) when parent DOM detection fails in sandboxed iframe
+
 ## v0.1.2
 
 ### Bug Fixes
