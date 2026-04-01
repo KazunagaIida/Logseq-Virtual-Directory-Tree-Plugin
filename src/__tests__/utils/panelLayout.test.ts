@@ -1,46 +1,32 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { adjustMainContent, resetMainContent } from '../../utils/panelLayout';
 
 describe('panelLayout', () => {
-  let mockElement: HTMLElement;
-
   beforeEach(() => {
-    mockElement = document.createElement('div');
-    mockElement.id = 'main-content-container';
-    document.body.appendChild(mockElement);
-
-    // Make top.document point to our test document
-    // In jsdom, top === window by default
+    vi.mocked(logseq.provideStyle).mockClear();
   });
 
-  afterEach(() => {
-    resetMainContent();
-    if (mockElement.parentNode) {
-      document.body.removeChild(mockElement);
-    }
-  });
-
-  it('adjustMainContent sets marginRight on found container', () => {
+  it('adjustMainContent injects margin-right style via provideStyle', () => {
     adjustMainContent(280);
-    expect(mockElement.style.marginRight).toBe('280px');
+    expect(logseq.provideStyle).toHaveBeenCalledWith({
+      key: 'vdt-main-content-adjust',
+      style: expect.stringContaining('margin-right: 280px !important'),
+    });
   });
 
-  it('resetMainContent clears marginRight', () => {
-    adjustMainContent(280);
-    expect(mockElement.style.marginRight).toBe('280px');
-
+  it('resetMainContent clears the injected style', () => {
     resetMainContent();
-    expect(mockElement.style.marginRight).toBe('');
+    expect(logseq.provideStyle).toHaveBeenCalledWith({
+      key: 'vdt-main-content-adjust',
+      style: '/* vdt-reset */',
+    });
   });
 
-  it('adjustMainContent does nothing when no selector matches', () => {
-    document.body.removeChild(mockElement);
-    // Should not throw
+  it('adjustMainContent does not throw', () => {
     expect(() => adjustMainContent(280)).not.toThrow();
   });
 
-  it('resetMainContent does nothing when not previously adjusted', () => {
-    // Should not throw
+  it('resetMainContent does not throw when not previously adjusted', () => {
     expect(() => resetMainContent()).not.toThrow();
   });
 });
