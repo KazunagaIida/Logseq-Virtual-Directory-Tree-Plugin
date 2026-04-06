@@ -78,8 +78,10 @@ export function useDragDrop(
         // Custom drag ghost showing item count
         const ghost = document.createElement('div');
         ghost.textContent = `${sources.length} items`;
-        ghost.style.cssText =
-          'padding: 4px 12px; background: #3898ff; color: #fff; border-radius: 4px; font-size: 13px; font-family: sans-serif; position: absolute; top: -1000px; white-space: nowrap;';
+        const accent =
+          getComputedStyle(document.documentElement).getPropertyValue('--vdt-accent').trim() ||
+          '#3898ff';
+        ghost.style.cssText = `padding: 4px 12px; background: ${accent}; color: #fff; border-radius: 4px; font-size: 13px; font-family: sans-serif; position: absolute; top: -1000px; white-space: nowrap;`;
         document.body.appendChild(ghost);
         e.dataTransfer.setDragImage(ghost, 0, 0);
         setTimeout(() => document.body.removeChild(ghost), 0);

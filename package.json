@@ -1,6 +1,6 @@
 {
   "name": "logseq-virtual-directory-tree",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "Virtual directory tree view using Logseq namespaces",
   "author": "kiida",
