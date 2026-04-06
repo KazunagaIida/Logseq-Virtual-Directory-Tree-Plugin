@@ -42,7 +42,9 @@ function detectTheme(): 'dark' | 'light' {
 
 function applyTheme(theme: 'dark' | 'light') {
   document.documentElement.setAttribute('data-theme', theme);
-  syncLogseqColors();
+  syncLogseqColors().catch(() => {
+    /* best-effort — CSS defaults remain */
+  });
 }
 
 function main() {

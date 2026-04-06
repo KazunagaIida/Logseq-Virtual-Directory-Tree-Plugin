@@ -17,6 +17,9 @@ const mockLogseq = {
     registerUIItem: vi.fn(),
     getUserConfigs: vi.fn().mockResolvedValue({}),
   },
+  UI: {
+    resolveThemeCssPropsVals: vi.fn().mockResolvedValue(null),
+  },
   DB: {
     onChanged: vi.fn(),
   },
