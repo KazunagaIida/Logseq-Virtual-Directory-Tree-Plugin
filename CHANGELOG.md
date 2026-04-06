@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.4
+
+### Bug Fixes
+
+- Fix "Copy path" in context menu not working in release mode
+  - `navigator.clipboard.writeText()` is blocked in Logseq's sandboxed iframe
+  - Add `document.execCommand('copy')` fallback for restricted environments
+
 ## v0.1.3
 
 ### Bug Fixes
