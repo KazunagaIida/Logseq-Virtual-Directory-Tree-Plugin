@@ -7,6 +7,7 @@ import { useDragDrop } from '../hooks/useDragDrop';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { buildRenameList, executeRenames } from '../utils/rename';
 import { resetMainContent, expandIframeForDialog, shrinkIframeToPanel } from '../utils/panelLayout';
+import { copyToClipboard } from '../utils/clipboard';
 import { TreeView } from './TreeView';
 import { ConfirmDialog, LoadingDialog, ResultDialog } from './ConfirmDialog';
 import { CreatePageDialog } from './CreatePageDialog';
@@ -242,7 +243,7 @@ export function App() {
 
   const handleCtxCopyPath = useCallback(() => {
     if (menu.node) {
-      navigator.clipboard.writeText(menu.node.originalName ?? menu.node.fullPath).catch(() => {});
+      copyToClipboard(menu.node.originalName ?? menu.node.fullPath);
     }
     closeMenu();
   }, [menu.node, closeMenu]);
