@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.5
+
+### Improvements
+
+- Sync panel colors with Logseq's theme (background, text, accent, border, icons, scrollbar)
+  - Uses a probe element in the parent document to read Logseq CSS variables at runtime
+  - Falls back to built-in defaults when variable access fails (e.g. sandboxed environments)
+  - Automatically re-syncs on theme change and panel open
+
 ## v0.1.4
 
 ### Bug Fixes

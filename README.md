@@ -23,7 +23,7 @@ A Logseq plugin that interprets namespace-separated page names (e.g. `dev/react/
 - **Independent Panel** -- Side panel does not overlap Logseq's main content area
 - **Smart Reload** -- Efficiently refreshes the tree using diff-based updates to preserve expand/collapse state
 - **Confirmation Dialogs** -- Review affected pages before any rename or move operation
-- **Theme Support** -- Adapts to Logseq's dark and light themes
+- **Theme Support** -- Automatically syncs colors with Logseq's theme (background, text, accent, borders, icons)
 - **Persistent State** -- Folder expand/collapse state and sort preferences are saved across reloads
 - **Keyboard Support** -- Press Escape to close any open dialog or menu
 
@@ -192,6 +192,7 @@ src/
     validation.ts       # Name validation, circular drop detection
     rename.ts           # Rename list generation + execution
     panelLayout.ts      # Panel positioning & main content layout
+    themeSync.ts        # Logseq theme color synchronization
     treeDiff.ts         # Diff-based tree update for smart reload
     debounce.ts         # Custom debounce function
   __tests__/            # Unit and integration tests

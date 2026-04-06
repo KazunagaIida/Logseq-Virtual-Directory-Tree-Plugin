@@ -8,6 +8,7 @@
   --vdt-border: #e0e0e0;
   --vdt-icon: #777777;
   --vdt-link: #045591;
+  --vdt-accent: #3898ff;
   --vdt-scrollbar: rgba(0, 0, 0, 0.25);
   --vdt-shadow: rgba(0, 0, 0, 0.15);
 }
@@ -20,6 +21,7 @@
   --vdt-border: #394b51;
   --vdt-icon: #999999;
   --vdt-link: #6db3f2;
+  --vdt-accent: #3898ff;
   --vdt-scrollbar: rgba(255, 255, 255, 0.2);
   --vdt-shadow: rgba(0, 0, 0, 0.5);
 }
@@ -131,11 +133,11 @@ html, body, #app {
 }
 
 .tree-node-selected {
-  background: rgba(56, 152, 255, 0.12);
+  background: color-mix(in srgb, var(--vdt-accent) 12%, transparent);
 }
 
 .tree-node-selected:hover {
-  background: rgba(56, 152, 255, 0.18);
+  background: color-mix(in srgb, var(--vdt-accent) 18%, transparent);
 }
 
 .tree-node-icon {
@@ -178,25 +180,25 @@ html, body, #app {
 }
 
 .tree-node.tree-node-drop-target {
-  background: rgba(56, 152, 255, 0.2);
-  border-left-color: #3898ff;
+  background: color-mix(in srgb, var(--vdt-accent) 20%, transparent);
+  border-left-color: var(--vdt-accent);
 }
 
 .tree-root-drop-target {
-  background: rgba(56, 152, 255, 0.08);
-  outline: 2px dashed rgba(56, 152, 255, 0.5);
+  background: color-mix(in srgb, var(--vdt-accent) 8%, transparent);
+  outline: 2px dashed color-mix(in srgb, var(--vdt-accent) 50%, transparent);
   outline-offset: -2px;
 }
 
 /* ===== Active node (reveal) ===== */
 .tree-node-active {
-  background: rgba(56, 152, 255, 0.25);
+  background: color-mix(in srgb, var(--vdt-accent) 25%, transparent);
   animation: vdt-fade-highlight 2s ease-out forwards;
 }
 
 @keyframes vdt-fade-highlight {
-  0% { background: rgba(56, 152, 255, 0.25); }
-  70% { background: rgba(56, 152, 255, 0.25); }
+  0% { background: color-mix(in srgb, var(--vdt-accent) 25%, transparent); }
+  70% { background: color-mix(in srgb, var(--vdt-accent) 25%, transparent); }
   100% { background: transparent; }
 }
 
