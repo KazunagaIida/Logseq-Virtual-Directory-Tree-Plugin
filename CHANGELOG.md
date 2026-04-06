@@ -1,13 +1,22 @@
 # Changelog
 
-## v0.1.5
+## v0.1.6
 
 ### Improvements
 
 - Sync panel colors with Logseq's theme (background, text, accent, border, icons, scrollbar)
-  - Uses a probe element in the parent document to read Logseq CSS variables at runtime
-  - Falls back to built-in defaults when variable access fails (e.g. sandboxed environments)
+  - Uses the official `logseq.UI.resolveThemeCssPropsVals()` API to read host CSS variables via IPC
+  - Works in marketplace installs (cross-origin `lsp://logseq.io` iframe)
   - Automatically re-syncs on theme change and panel open
+  - Falls back to built-in defaults matching Logseq's default dark/light themes
+- Update dark theme default colors to match Logseq's actual default dark theme
+
+## v0.1.5
+
+### Improvements
+
+- Add `--vdt-accent` CSS variable and `color-mix()` for theme-aware accent colors
+- Replace hardcoded accent color (`#3898ff`) with CSS variable-based styling
 
 ## v0.1.4
 
