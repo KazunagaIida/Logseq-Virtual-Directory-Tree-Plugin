@@ -1,5 +1,7 @@
 # Logseq Virtual Directory Tree
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-yellow?logo=buy-me-a-coffee)](https://buymeacoffee.com/kiida)
+
 A Logseq plugin that interprets namespace-separated page names (e.g. `dev/react/hooks`) as virtual directories and provides a file-explorer-style tree UI in the sidebar.
 
 ![Main View](docs/images/main.png)
